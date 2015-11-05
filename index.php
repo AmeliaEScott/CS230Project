@@ -5,6 +5,7 @@ require 'vendor/Slim/Slim.php';
 \Slim\Slim::registerAutoloader();
 
 $app = new \Slim\Slim(array(
+  'debug' => true,
   'view' => new \Slim\Views\Twig()
 ));
 

@@ -1,8 +1,8 @@
 <div class="jumbotron" id="header">
   <div class="container text-center">
-    <h1>VoteÜ</h1>
+    <h1>Vote&Uuml;</h1>
     <h4>A vote
-      <em>for you</em>.
+      <em style="text-shadow:2px 2px #2C3E50">for you</em>.
       <br>
       <small>Proud to provide to Morgantown U</small>
     </h4>
@@ -25,11 +25,9 @@
       </li>
     </ul>
     <ul class="navbar-nav nav navbar-right">
-      <li id="loginLink">
-        <a href="javascript:getSession()">Login</a>
-      </li>
-      <li id="userMenu" class="hidden dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{userId}} <span class="caret"></span></a>
+      {% if sessionId is defined %}
+      <li id="userMenu" class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{sessionId}} <span class="caret"></span></a>
         <ul class="dropdown-menu">
           <li><a href="/my/votes">My Votes</a></li>
           <li><a href="#">Something else here</a></li>
@@ -44,6 +42,12 @@
           <li><a href="javascript:clearSession()">Logout</a></li>
         </ul>
       </li>
+      {% endif %}
+      {% if sessionId is null %}
+      <li id="loginLink">
+        <a href="javascript:getSession()">Login</a>
+      </li>
+      {% endif %}
     </ul>
   </div>
 </nav>

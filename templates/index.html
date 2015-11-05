@@ -1,11 +1,9 @@
-<?php
-require 'head.php';
+{% include 'head.html' %}
 
-require 'header.php';
-?>
+{% include 'header.html' %}
 
   <div class="container" id="main">
-    <h2 id="tagline">Welcome <small>to VoteÜ, a hypothetical voting system for Morgantown University with <em>your vote</em> in mind.<br>Still have questions? <a href="/about">Learn More</a></small></h2>
+    <h2 id="tagline">Welcome <small>to Vote&Uuml;, a hypothetical voting system for Morgantown University with <em>your vote</em> in mind.<br>Still have questions? <a href="/about">Learn More</a></small></h2>
     <hr>
     <div class="row">
       <span class="col-sm-6">
@@ -19,6 +17,4 @@ require 'header.php';
     </div>
   </div>
 
-<?php
-require 'footer.php';
-?>
+{% include 'footer.html' %}
