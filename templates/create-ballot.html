@@ -1,0 +1,200 @@
+{% include 'head.html' %}
+
+{% include 'header.html' %}
+
+  <div class="container" id="main">
+    <div class="page-header text-center">
+      <h2>Create a Ballot</h2>
+    </div>
+    <span class="col-sm-8 col-sm-offset-2">
+      <p>
+        Please fill in all fields marked with a <strong class="text-danger">*</strong>.
+      </p>
+      <form class="form-horizontal" id="createBallot">
+        <div class="form-group">
+          <label for="ballotName" class="col-sm-3 control-label">Ballot Name<strong class="text-danger">*</strong></label>
+          <div class="col-sm-9">
+            <input type="text" class="form-control" id="ballotName" name="ballotName" placeholder="(e.g. Rocket Club President, Group Project Team Lead, etc.)">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="ballotEC" class="col-sm-3 control-label">Election Commissioner</label>
+          <div class="col-sm-9">
+            <input type="hidden" name="ballotEC" id="ballotEC" value="{{ user.id }}">
+            <p class="form-control-static">
+              {{ user.name }}
+              <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="top" title="This can only be changed by the Head of Student Orgs"></span>
+            </p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="ballotDesc" class="col-sm-3 control-label">Description</label>
+          <div class="col-sm-9">
+            <textarea class="form-control" id="ballotDesc" name="ballotDesc" rows=3 placeholder="A description about your ballot and what races it enatils."></textarea>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="ballotRaces" class="col-sm-3 control-label">Races<strong class="text-danger">*</strong></label>
+          <div class="col-sm-9">
+            <div id="ballotRacesResultsTemplate" class="hidden">
+              {% verbatim %}
+              {{#race}}
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  {{raceName}}
+                  <span class="glyphicon glyphicon-trash pull-right" data-action="removeRace:{{@index}}"></span>
+                </div>
+                <div class="panel-body">
+                  <dl>
+                    <dt>Description</dt>
+                    <dd>{{raceDesc}}</dd>
+                    <dt>Allow Write-In?</dt>
+                    <dd>{{#if allowWriteIn}}true{{^}}false{{/if}}</dd>
+                    {{#if allowWriteIn}}
+                    <dt>Verify Write-In as Valid Faculty?</dt>
+                    <dd>{{#if verifyWriteIn}}true{{^}}false{{/if}}</dd>
+                    {{/if}}
+                  </dl>
+                </div>
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Party</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {{#each candidates}}
+                      <tr>
+                          <td>{{this}}</td>
+                      </tr>
+                    {{/each}}
+                  </tbody>
+                </table>
+              </div>
+              {{/race}}
+              {% endverbatim %}
+            </div>
+            <div id="ballotRacesResults" class="hidden"></div>
+            <button class="btn btn-primary" id="addRace">Add Race <i class="glyphicon glyphicon-plus"></i></button>
+            <input type="hidden" id="ballotRaces" name="ballotRaces" value="">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="ballotRange" class="col-sm-3 control-label">Ballot Dates<strong class="text-danger">*</strong></label>
+          <div class="col-sm-9">
+            <input type="text" class="daterange form-control" name="ballotRange" id="ballotRange">
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-offset-3 col-sm-9">
+            <input type="reset" class="btn btn-danger" value="Reset">
+            <input type="submit" class="btn btn-success" value="Create" onclick="$('#createBallot').submit()">
+          </div>
+        </div>
+      </form>
+    </span>
+  </div>
+
+  <div id="addRaceModal" class="modal fade" role="dialog">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Add Race</h4>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <form class="form-horizontal" id="addRaceForm">
+            <div class="form-group">
+              <label for="ballotName" class="col-sm-offset-1 col-sm-2 control-label">Race<strong class="text-danger">*</strong></label>
+              <div class="col-sm-6">
+                <input type="text" class="form-control" id="raceName" name="raceName" placeholder="(e.g. Treasurer, Group Representative etc.)">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="raceDesc" class="col-sm-offset-1 col-sm-2 control-label">Description</label>
+              <div class="col-sm-6">
+                <input type="text" class="form-control" id="raceDesc" name="raceDesc" placeholder="A brief description about this race."></textarea>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="ballotEC" class="col-sm-offset-1 col-sm-2 control-label">Attributes</label>
+              <div class="col-sm-6">
+                <label class="checkbox-inline">
+                  <input type="checkbox" name="allowWriteIn" value="true"> Allow Write-In
+                </label>
+                <label class="checkbox-inline">
+                  <input type="checkbox" name="verifyWriteIn" value="true" disabled> Verify Write-In as Faculty
+                </label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="candidates" class="col-sm-offset-1 col-sm-2 control-label">Candidates</label>
+              <div class="col-sm-6">
+                <span id="candidatesResultsTemplate" class="hidden">
+                  {% verbatim %}
+                  <ul class="list-group">
+                    {{#each this}}
+                    <li class="list-group-item">
+                      {{name}} {{#if party}}<span class="label label-default">{{party}}</span>{{/if}}
+                      <span class="glyphicon glyphicon-trash pull-right" data-action="removeCandidate:{{@index}}"></span>
+                    </li>
+                    {{/each}}
+                  </ul>
+                  {% endverbatim %}
+                </span>
+                <div id="candidatesResults"></div>
+                <button class="btn btn-primary" id="addCandidate"><i class="glyphicon glyphicon-user"></i><i class="glyphicon glyphicon-plus"></i></button>
+                <input type="hidden" id="candidates" name="candidates" value="">
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" data-submit="#addRaceForm">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="addCandidateModal" class="modal fade" role="dialog">
+<div class="modal-dialog modal-lg" role="document">
+  <div class="modal-content">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <h4 class="modal-title">Add Candidate</h4>
+    </div>
+    <div class="modal-body">
+      <div class="row">
+        <form class="form-horizontal" id="addCandidateForm">
+          <div class="form-group">
+            <label for="ballotName" class="col-sm-offset-1 col-sm-2 control-label">Candidate Name<strong class="text-danger">*</strong></label>
+            <div class="col-sm-6">
+              <input type="text" class="form-control" id="candidateName" name="name" placeholder="(e.g. John Doe, Gordon Gee, etc.)">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="raceDesc" class="col-sm-offset-1 col-sm-2 control-label">Party</label>
+            <div class="col-sm-6">
+              <input type="text" class="form-control" id="candidateParty" name="party" placeholder="(e.g. Independent, Bull Moose, etc.)"></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+      <button type="button" class="btn btn-primary" data-submit="#addCandidateForm">Add</button>
+    </div>
+  </div>
+</div>
+</div>
+
+  <script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+  <script type="text/javascript" src="//cdn.jsdelivr.net/handlebarsjs/4.0.4/handlebars.min.js"></script>
+
+
+{% include 'footer.html' %}

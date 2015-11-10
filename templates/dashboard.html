@@ -1,0 +1,73 @@
+{% include 'head.html' %}
+
+{% include 'header.html' %}
+
+  <div class="container" id="main">
+    <div class="page-header">
+      <h2>Welcome, {{ user.name }}</h2>
+      <p>
+        {% if user.role <= 2 %}
+        Below you will find tools needed to administrate election comissioners{{user.role == 1 ? ', ' : ' and'}} active elections{{user.role == 1 ? ', and the system as a whole'}}.
+        {% endif %}
+      </p>
+    </div>
+    {% if user.role <= 2 %}
+    <h4>Manage Election Commissioners</h4>
+    <p class="col-sm-8">
+      Election commissioners are users who create, manage, and maintain elections which occur within the system. Here, you can approve individual users to be an election commissioner or reassign election commissioners on already active ballots.
+    </p>
+    <span class="col-sm-offset-1 col-sm-6">
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Election</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for u in ecs %}
+            <th scope="row">{{u.id}}</th>
+            <td>{{u.name}}</td>
+            <td>foobar</td>
+            <td><i class="glyphicon glyphicon-remove"></i></td>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </span>
+    <span class="col-sm-offset-1 col-sm-4 well">
+      <p class="text-center">Use this to approve individual election commissioners.</p>
+      <form class="form-horizontal" onsubmit="return addEC()">
+        <div class="form-group">
+          <label for="ecUserId" class="col-sm-4 control-label">User ID</label>
+          <div class="col-sm-8">
+            <input type="number" class="form-control" placeholder="Student ID" id="ecUserId">
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-offset-4 col-sm-8">
+            <button type="submit" class="btn btn-primary">Approve</button>
+          </div>
+        </div>
+      </form>
+    </span>
+    {% endif %}
+  </div>
+
+  <script type="text/javascript">
+    function addEC() {
+      var id = document.getElementById('ecUserId').value;
+      console.log("registering id: " + id);
+      var url = document.location.pathname;
+      url += (url.endsWith('/') ? "" : "/") + "addEC";
+      $.post(url, {'user':id}, function(d){
+        console.log(d);
+      });
+      return false;
+    }
+  </script>
+
+{% include 'footer.html' %}

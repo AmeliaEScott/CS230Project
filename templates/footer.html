@@ -8,31 +8,93 @@
 </footer>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-<script src="js/bootstrap.min.js"></script>
+<script src="/vote/js/bootstrap.min.js"></script>
 <script src="https://rawgit.com/js-cookie/js-cookie/master/src/js.cookie.js"></script>
 <script src="https://rawgit.com/btmills/geopattern/master/js/geopattern.min.js"></script>
-<script defer type="text/javascript">
+<script type="text/javascript">
   var sessid;
   $(function() {
-    $("#header").geopattern("VoteÜ", {
-      color: "#3498DB"
+    $(".modal input:checkbox,.modal label").on("click", function(e) {
+      e.stopImmediatePropagation();
+      var element = (e.currentTarget.hasOwnProperty('htmlFor')) ? e.currentTarget.htmlFor : e.currentTarget;
+      var checked = (element.checked) ? false : true;
+      element.checked = (checked) ? false : checked.toString();
     });
+
+    $('[data-toggle="tooltip"]').tooltip();
+
+    $('.label[data-party!=""]').each(function() {
+      $(this).css({'backgroundColor': GeoPattern.generate($(this).attr('data-party')).color});
+    });
+
+    $('#header').geopattern('VoteÜ', {
+      color: '#3498DB'
+    });
+
+    {% if election %}
+    $('#electionHeader').geopattern('{{election.name}}');
+    {% endif %}
+
+    $('.nav > li > a[href!=#]').each(function(){
+     if($(this).attr('href') == location.pathname) $(this).parent().addClass('active');
+    });
+
+    if (document.location.pathname.endsWith('create-ballot')) {
+      $.getScript(document.location.pathname.replace(/\/dashboard(.*?)$/, "/js/create-ballot.js"));
+    } else if (document.location.pathname.match(/\/campaign\/([0-9]+)\/?/)) {
+      $('#castVote').click(function(e){
+        e.preventDefault();
+        var d = [];
+        $('form.raceForm').each(function(){
+          d.push(getFormData($(this)));
+        });
+        if(confirm("Are you sure you'd like to cast your ballot now? This can't be changed later.")) {
+          $.ajax({
+            url: document.location.pathname + (!document.location.pathname.endsWith('/') ? '/' : '') + 'vote',
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(d)
+          }).done(function(d) {
+            alert("Your vote has been cast.");
+            window.location = "{{ urlFor('homepage') }}";
+          });
+        }
+      });
+    }
   });
 
   function getSession() {
     //this is only for demonstration purposes
-    sessid = prompt("Please enter your session ID.");
+    sessid = prompt('Please enter your session ID.');
     if (sessid != '') {
-      Cookies.set("sessid", sessid);
+      Cookies.set('sessid', sessid);
       location.reload();
-    } else {
-      alert("Error logging in user with session \"" + sessid + "\".");
     }
   }
 
   function clearSession() {
-    Cookies.remove("sessid");
+    Cookies.remove('sessid');
     location.reload();
+  }
+
+  function getFormData(form){
+    var unindexed_array = form.serializeArray();
+    var indexed_array = {};
+
+    $.map(unindexed_array, function(n, i){
+        indexed_array[n['name']] = isJsonStr(n['value']) ? JSON.parse(n['value']) : n['value'];
+    });
+
+    return indexed_array;
+  }
+
+  function isJsonStr(str) {
+    try {
+        JSON.parse(str);
+    } catch (e) {
+        return false;
+    }
+    return true;
   }
 </script>
 </body>

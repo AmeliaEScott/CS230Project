@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>VoteÜ | Morgantown U</title>
 
-  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="/vote/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Raleway:700">
   <style type="text/css">
     * {
@@ -19,6 +19,7 @@
       background-color: #2C3E50;
       border: 0;
       border-radius: 0;
+      margin-bottom: calc(20px + 3em);
     }
 
     .navbar-default .navbar-nav>li>a {
@@ -56,10 +57,20 @@
 
     #main {
       background-color: #fff;
-      margin-top: 3em;
       min-height: 250px;
       border: 1px solid rgb(231, 231, 231);
       padding-bottom: 1.5em;
+    }
+
+    #electionHeader {
+      margin-left: -15px;
+      margin-right: -15px;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    #electionHeader h1 {
+      color: white;
     }
 
     #tagline small {
@@ -73,6 +84,10 @@
 
     svg {
       height: 16px;
+    }
+
+    span.glyphicon-trash:hover {
+      cursor: pointer;
     }
   </style>
 

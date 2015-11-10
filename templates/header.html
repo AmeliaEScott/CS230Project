@@ -11,39 +11,32 @@
 <nav class="navbar navbar-default">
   <div class="container">
     <ul class="navbar-nav nav navbar-left">
-      <li class="active">
-        <a href="/">Home</a>
+      <li>
+        <a href="{{ urlFor('homepage') }}">Home</a>
       </li>
       <li>
-        <a href="/campaigns">Campaigns</a>
+        <a href="{{ urlFor('campaigns') }}">Campaigns</a>
       </li>
       <li>
-        <a href="/results">Results</a>
+        <a href="{{ urlFor('results') }}">Results</a>
       </li>
       <li>
-        <a href="/about">About</a>
+        <a href="{{ urlFor('about') }}">About</a>
       </li>
     </ul>
     <ul class="navbar-nav nav navbar-right">
-      {% if sessionId is defined %}
+      {% if user is not empty %}
       <li id="userMenu" class="dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{sessionId}} <span class="caret"></span></a>
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{user.name}} <span class="caret"></span></a>
         <ul class="dropdown-menu">
-          <li><a href="/my/votes">My Votes</a></li>
-          <li><a href="#">Something else here</a></li>
-          <!-- everything between this is for privileged roles only (e.g. election commisioner, provost, etc.) -->
+          <li><a href="{{ urlFor('dashboard') }}">Dashboard</a></li>
+          {% if user.data.isEC or user.role == 1 %}<li><a href="{{ urlFor('create.ballot')}}">Create Ballot</a></li>{% endif %}
           <li role="separator" class="divider"></li>
-          <li><a href="#">Review Results</a></li>
-          <!-- end privileged roles links -->
-          <li role="separator" class="divider"></li>
-          <li>
-            <a href="/my/settings">Settings</a>
-          </li>
           <li><a href="javascript:clearSession()">Logout</a></li>
         </ul>
       </li>
       {% endif %}
-      {% if sessionId is null %}
+      {% if user is empty %}
       <li id="loginLink">
         <a href="javascript:getSession()">Login</a>
       </li>
@@ -51,3 +44,12 @@
     </ul>
   </div>
 </nav>
+
+{% if flash.error %}{% set error = flash.error %}{% endif %}
+
+{% if error %}
+<div class="container alert alert-danger alert-dismissible" role="alert">
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+  <strong>Error:</strong> {{error}}
+</div>
+{% endif %}
