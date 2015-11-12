@@ -1,6 +1,6 @@
 <footer class="container">
     <p class="pull-left">
-      A product of The Team Formerly Known as Prince <img src="https://upload.wikimedia.org/wikipedia/en/a/af/Prince_logo.svg" height="16px">
+      A product of The Team Formerly Known as Prince <img src="https://upload.wikimedia.org/wikipedia/en/a/af/Prince_logo.svg" height="16px" onclick="swapColors();" style="cursor:pointer">
     </p>
     <p class="pull-right">
       <a href="https://github.com/ItsTimaiFool/CS230Project">GitHub</a> | ver. 0.0.1~alpha
@@ -12,7 +12,7 @@
 <script src="https://rawgit.com/js-cookie/js-cookie/master/src/js.cookie.js"></script>
 <script src="https://rawgit.com/btmills/geopattern/master/js/geopattern.min.js"></script>
 <script type="text/javascript">
-  var sessid;
+  var sessid, easterEgg = 1;
   $(function() {
     $(".modal input:checkbox,.modal label").on("click", function(e) {
       e.stopImmediatePropagation();
@@ -62,6 +62,19 @@
       });
     }
   });
+
+  function swapColors() {
+    $("*").each(function() {
+      if(easterEgg) {
+        $(this).css({'backgroundColor': GeoPattern.generate($(this).text()).color});
+      } else {
+        $(this).attr('style', function() {
+          return $(this).attr('style').replace(/background-color: .*?;/ig, "");
+        });
+      }
+    });
+    easterEgg = Number(!easterEgg);
+  }
 
   function getSession() {
     //this is only for demonstration purposes
