@@ -27,8 +27,12 @@
         Still having issues? Please read our <a href="{{ urlFor('about') }}">FAQ</a>.
       </p>
       <h2>Races</h2>
+      {% set races, parties = [], [] %}
       {% for race in election.data if race.raceName %}
-        {% set raceID = loop.index %}
+        {% set races = races|merge([race]) %}
+      {% endfor %}
+      {% for race in races %}
+        {% set raceID = loop.index0 %}
         <form class="raceForm" id="race:{{raceID}}">
           <div class="text-center">
             <h3>{{race.raceName}}</h3>
@@ -38,8 +42,14 @@
             {% for candidate in race.candidates %}
               <div class="radio">
                 <label>
-                  <input type="radio" name="race:{{raceID}}" value="candidate:{{loop.index}}" data-party="{{candidate.party}}">
-                  {{candidate.name}} {% if candidate.party %}<span class="label" data-party="{{candidate.party}}">{{candidate.party}}</span>{% endif %}
+                  <input type="radio" name="race:{{raceID}}" value="candidate:{{loop.index0}}" data-party="{{candidate.party}}">
+                  {{candidate.name}}
+                  {% if candidate.party %}
+                    {% if candidate.party not in parties %}
+                      {% set parties = parties|merge([candidate.party]) %}
+                    {% endif %}
+                    <span class="label" data-party="{{candidate.party}}">{{candidate.party}}</span>
+                  {% endif %}
                 </label>
               </div>
             {% endfor %}
@@ -49,11 +59,24 @@
               <input type="text" name="race:{{raceID}}" class="form-control">
             </div>
             {% endif %}
-            <hr>
+            <hr {% if loop.last and parties is not empty -%}class="hr-text" data-content="OR"{%- endif -%}>
           </div>
         </form>
         <div class="clearfix"></div>
       {% endfor %}
+      {% if parties is not empty %}
+        <div class="col-sm-6 col-sm-offset-3">
+          <h4 class="text-center">vote straight ticket</h4>
+          <select class="form-control" id="straight-ticket">
+            <option selected>Choose one...</option>
+            {% for party in parties %}
+            <option value="{{party}}">{{party}}</option>
+            {% endfor %}
+          </select>
+          <hr>
+        </div>
+        <div class="clearfix"></div>
+      {% endif %}
       <div class="text-center">
         <button type="submit" class="btn btn-success" id="castVote">Cast Vote</button>
         <button type="reset" class="btn btn-danger">Cancel</button>

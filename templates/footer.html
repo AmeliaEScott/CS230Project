@@ -1,10 +1,11 @@
 <footer class="container">
-    <p class="pull-left">
-      A product of The Team Formerly Known as Prince <img src="https://upload.wikimedia.org/wikipedia/en/a/af/Prince_logo.svg" height="16px" onclick="swapColors();" style="cursor:pointer">
-    </p>
-    <p class="pull-right">
-      <a href="https://github.com/ItsTimaiFool/CS230Project">GitHub</a> | ver. 0.0.1~alpha
-    </p>
+  <p class="pull-left">
+    A product of The Team Formerly Known as Prince
+    <img src="https://upload.wikimedia.org/wikipedia/en/a/af/Prince_logo.svg" height="16px" onclick="swapColors();" style="cursor:pointer">
+  </p>
+  <p class="pull-right">
+    <a href="https://github.com/ItsTimaiFool/CS230Project">GitHub</a> | ver. 0.0.1~alpha
+  </p>
 </footer>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
@@ -24,31 +25,33 @@
     $('[data-toggle="tooltip"]').tooltip();
 
     $('.label[data-party!=""]').each(function() {
-      $(this).css({'backgroundColor': GeoPattern.generate($(this).attr('data-party')).color});
+      $(this).css({
+        'backgroundColor': GeoPattern.generate($(this).attr('data-party')).color
+      });
     });
 
     $('#header').geopattern('VoteÜ', {
       color: '#3498DB'
     });
 
-    {% if election %}
-    $('#electionHeader').geopattern('{{election.name}}');
-    {% endif %}
+    if({{ election ? 'true' : 'false' }}) {
+      $('#electionHeader').geopattern('{{election.name}}');
+    }
 
-    $('.nav > li > a[href!=#]').each(function(){
-     if($(this).attr('href') == location.pathname) $(this).parent().addClass('active');
+    $('.nav > li > a[href!=#]').each(function() {
+      if ($(this).attr('href') == location.pathname) $(this).parent().addClass('active');
     });
 
     if (document.location.pathname.endsWith('create-ballot')) {
       $.getScript(document.location.pathname.replace(/\/dashboard(.*?)$/, "/js/create-ballot.js"));
     } else if (document.location.pathname.match(/\/campaign\/([0-9]+)\/?/)) {
-      $('#castVote').click(function(e){
+      $('#castVote').click(function(e) {
         e.preventDefault();
         var d = [];
-        $('form.raceForm').each(function(){
+        $('form.raceForm').each(function() {
           d.push(getFormData($(this)));
         });
-        if(confirm("Are you sure you'd like to cast your ballot now? This can't be changed later.")) {
+        if (confirm("Are you sure you'd like to cast your ballot now? This can't be changed later.")) {
           $.ajax({
             url: document.location.pathname + (!document.location.pathname.endsWith('/') ? '/' : '') + 'vote',
             method: "POST",
@@ -60,13 +63,19 @@
           });
         }
       });
+
+      $('#straight-ticket').on('change', function() {
+        $('input[data-party="' + this.value + '"]').prop("checked", true);
+      });
     }
   });
 
   function swapColors() {
     $("*").each(function() {
-      if(easterEgg) {
-        $(this).css({'backgroundColor': GeoPattern.generate($(this).text()).color});
+      if (easterEgg) {
+        $(this).css({
+          'backgroundColor': GeoPattern.generate($(this).text()).color
+        });
       } else {
         $(this).attr('style', function() {
           return $(this).attr('style').replace(/background-color: .*?;/ig, "");
@@ -90,12 +99,12 @@
     location.reload();
   }
 
-  function getFormData(form){
+  function getFormData(form) {
     var unindexed_array = form.serializeArray();
     var indexed_array = {};
 
-    $.map(unindexed_array, function(n, i){
-        indexed_array[n['name']] = isJsonStr(n['value']) ? JSON.parse(n['value']) : n['value'];
+    $.map(unindexed_array, function(n, i) {
+      indexed_array[n['name']] = isJsonStr(n['value']) ? JSON.parse(n['value']) : n['value'];
     });
 
     return indexed_array;
@@ -103,9 +112,9 @@
 
   function isJsonStr(str) {
     try {
-        JSON.parse(str);
+      JSON.parse(str);
     } catch (e) {
-        return false;
+      return false;
     }
     return true;
   }
