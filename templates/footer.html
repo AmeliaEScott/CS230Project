@@ -58,8 +58,13 @@
             contentType: "application/json",
             data: JSON.stringify(d)
           }).done(function(d) {
-            alert("Your vote has been cast.");
-            window.location = "{{ urlFor('homepage') }}";
+            console.log(d);
+            if(d.success) {
+              alert("Your vote has been cast.");
+              location.reload();
+            } else {
+              alert("Error: " + d.error);
+            }
           });
         }
       });

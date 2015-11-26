@@ -73,6 +73,16 @@ class Election {
     }
   }
 
+  public function getRaces() {
+    $races = array();
+    foreach($this->data as $item) {
+      if(array_key_exists('raceName', $item)) {
+        $races[] = $item;
+      }
+    }
+    return empty($races) ? null : $races;
+  }
+
   public function isActive() {
     $format = 'm/d/Y h:i A';
     $currDate = date($format);

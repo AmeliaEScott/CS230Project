@@ -2,6 +2,7 @@
 
 require 'lib/user.php';
 require 'lib/election.php';
+require 'lib/vote.php';
 
 class DB {
 
