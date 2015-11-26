@@ -90,7 +90,7 @@ $('#createBallot').submit(function(e) {
       contentType: "application/json",
     }).done(function(d){
       if(d.success) {
-        window.location = "{{ urlFor('campaign', {'id': 'xxx'}) }}".replace("xxx", d.id);
+        window.location = window.location.pathname.replace(/\/dashboard\/create\-ballot\/?/, "/campaign/" + d.id);
       }
     });
   }
