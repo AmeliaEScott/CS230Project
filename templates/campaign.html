@@ -53,10 +53,12 @@
                 </label>
               </div>
             {% endfor %}
-            {% if election.data.allowWriteIn %}
-            <div class="form-group">
-              <label>Optionally, Write-In</label>
-              <input type="text" name="race:{{raceID}}" class="form-control">
+            {% if race.allowWriteIn %}
+            <div class="radio">
+              <label class="form-inline">
+                <input type="radio" name="race:{{raceID}}" value="candidate:writein" data-party="{{candidate.party}}">
+                <input type="text" name="race:{{raceID}}:writein" class="form-control" placeholder="other...">
+              </label>
             </div>
             {% endif %}
             <hr {% if loop.last and parties is not empty -%}class="hr-text" data-content="OR"{%- endif -%}>

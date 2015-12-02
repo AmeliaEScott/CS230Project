@@ -68,55 +68,64 @@ $app->post(
   '/campaign/:id/vote',
   $checkAuth(3),
   function($id) use ($app, $db) {
-    $q = $db->prepare('SELECT * FROM elections WHERE id = :id');
-    $q->bindParam(':id', $id);
+    $app->response->headers->set('Content-Type', 'application/json');
+    $elec = $db->getElection($id);
     $user = $app->view->get('user');
 
-    if($q->execute()) {
-      $row = $q->fetch(PDO::FETCH_OBJ);
+    if ($elec == null || $elec == false) {
+      echo json_encode(array(
+        'success' => false,
+        'error' => 'An election with that ID does not exist.'
+      ));
+      return;
+    }
 
-      if(!empty($row)) {
-        $elec = new Election($row);
-        $races = $elec->getRaces();
-        $data = json_decode($app->request->getBody());
-        foreach($data as $item) {
-          foreach($item as $key => $value) {
-            $k = explode(':', $key);
-            $v = explode(':', $value);
-            $raceID = intval($k[1], 10);
-            $canID = intval($v[1], 10);
+    $races = $elec->getRaces();
+    $data = json_decode($app->request->getBody());
+    foreach($data as $item) {
+      foreach($item as $k => $v) {
+        $keys = explode(':', $k);
+        $raceID = intval($keys[1], 10);
+        $race = isset($elec->getRaces()[$raceID]) ? $elec->getRaces()[$raceID] : null;
+        $canID = -1;
 
-            if($k[0] != 'race' || $raceID > sizeof($races)-1 || $canID > sizeof($races[$raceID]->candidates)) {
-              echo json_encode(array(
-                'success' => false,
-                'error' => 'There was an error submitting your vote. Please refresh and try again later.'
-              ));
-              return;
-            }
-
-            $vote = new Vote((object) array(
-              'user' => $user->id,
-              'election' => $elec->id,
-              'race' => $raceID,
-              'candidate' => $canID
-            ));
-            $vote->save($db);
-          }
+        if ($v == 'candidate:writein' && $race->allowWriteIn == true) {
+          continue;
         }
 
-        $app->response->headers->set('Content-Type', 'application/json');
-        echo json_encode(array(
-          'success' => true,
-          'data' => $data,
-          'vote' => $vote
+        if(sizeof($keys) == 2) {
+          $vals = explode(':', $v);
+          $canID = intval($vals[1], 10);
+        }
+
+        $vote = new Vote((object) array(
+          'user' => $user->id,
+          'election' => $elec->id,
+          'race' => $raceID,
+          'candidate' => $canID
         ));
-      } else {
-        echo json_encode(array(
-          'success' => false,
-          'error' => 'An election with that ID does not exist.'
-        ));
+
+        if (sizeof($keys) == 3 && $keys[2] == 'writein' && $race->allowWriteIn == true) {
+          $vote->setData('writein', $v);
+        }
+
+        if ($race == null || $keys[0] != 'race' || $raceID > sizeof($races)-1 || $vote->candidate > sizeof($races[$raceID]->candidates) || (!$race->allowWriteIn && sizeof($keys) == 3)) {
+          echo json_encode(array(
+            'success' => false,
+            'error' => 'There was an error submitting your vote. Please refresh and/or try again later.'
+          ));
+          return;
+        }
+
+        $vote->save($db);
       }
     }
+
+    echo json_encode(array(
+      'success' => true,
+      'data' => $data,
+      'vote' => $vote
+    ));
   }
 )->name('voteFor');
 

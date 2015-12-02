@@ -18,6 +18,24 @@ class DB {
     return $conn;
   }
 
+  public function getElection($elecID) {
+    try {
+      $q = $this->prepare("SELECT * FROM elections WHERE id = :id");
+      $q->bindParam(':id', $elecID);
+      $q->execute();
+
+      $data = $q->fetch(PDO::FETCH_OBJ);
+      return new Election($data);
+    } catch (PDOException $e) {
+      if ($e->getCode() == '02000') {
+        return null;
+      } else {
+        error_log($e->getMessage());
+        return false;
+      }
+    }
+  }
+
   public function getUser($userID) {
     try {
       $q = $this->prepare("SELECT * FROM users WHERE userid = :id");

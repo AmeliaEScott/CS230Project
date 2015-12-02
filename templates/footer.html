@@ -45,33 +45,7 @@
     if (document.location.pathname.endsWith('create-ballot')) {
       $.getScript(document.location.pathname.replace(/\/dashboard(.*?)$/, "/js/create-ballot.js"));
     } else if (document.location.pathname.match(/\/campaign\/([0-9]+)\/?/)) {
-      $('#castVote').click(function(e) {
-        e.preventDefault();
-        var d = [];
-        $('form.raceForm').each(function() {
-          d.push(getFormData($(this)));
-        });
-        if (confirm("Are you sure you'd like to cast your ballot now? This can't be changed later.")) {
-          $.ajax({
-            url: document.location.pathname + (!document.location.pathname.endsWith('/') ? '/' : '') + 'vote',
-            method: "POST",
-            contentType: "application/json",
-            data: JSON.stringify(d)
-          }).done(function(d) {
-            console.log(d);
-            if(d.success) {
-              alert("Your vote has been cast.");
-              location.reload();
-            } else {
-              alert("Error: " + d.error);
-            }
-          });
-        }
-      });
-
-      $('#straight-ticket').on('change', function() {
-        $('input[data-party="' + this.value + '"]').prop("checked", true);
-      });
+      $.getScript(document.location.pathname.replace(/\/campaign\/([0-9]+)\/?$/, "/js/cast-vote.js"));
     }
   });
 
