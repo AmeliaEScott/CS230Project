@@ -18,6 +18,34 @@ class DB {
     return $conn;
   }
 
+  public function getVotes($elecID, $userID = -1) {
+    try {
+      if ($userID > 0) {
+        $q = $this->prepare("SELECT * FROM votes WHERE elecID = :id and userid = :user");
+        $q->bindParam(':user', $userID);
+      } else {
+        $q = $this->prepare("SELECT * FROM votes WHERE elecID = :id");
+      }
+      $q->bindParam(':id', $elecID);
+      $q->execute();
+
+      $votes = array();
+
+      while($row = $q->fetch(PDO::FETCH_OBJ)) {
+        $votes[] = new Vote($row);
+      }
+
+      return $votes;
+    } catch (PDOException $e) {
+      if ($e->getCode() == '02000') {
+        return null;
+      } else {
+        error_log($e->getMessage());
+        return false;
+      }
+    }
+  }
+
   public function getElection($elecID) {
     try {
       $q = $this->prepare("SELECT * FROM elections WHERE id = :id");

@@ -71,11 +71,20 @@ $app->post(
     $app->response->headers->set('Content-Type', 'application/json');
     $elec = $db->getElection($id);
     $user = $app->view->get('user');
+    $prevVote = $db->getVotes($id, $user->id);
 
     if ($elec == null || $elec == false) {
       echo json_encode(array(
         'success' => false,
         'error' => 'An election with that ID does not exist.'
+      ));
+      return;
+    }
+
+    if (!empty($prevVote)) {
+      echo json_encode(array(
+        'success' => false,
+        'error' => 'You cannot submit more than one vote.'
       ));
       return;
     }
@@ -109,7 +118,7 @@ $app->post(
           $vote->setData('writein', $v);
         }
 
-        if ($race == null || $keys[0] != 'race' || $raceID > sizeof($races)-1 || $vote->candidate > sizeof($races[$raceID]->candidates) || (!$race->allowWriteIn && sizeof($keys) == 3)) {
+        if ($race == null || $keys[0] != 'race' || $raceID > sizeof($races)-1 || $vote->candidate > sizeof($races[$raceID]->candidates) || ((!isset($race->allowWriteIn) || $race->allowWriteIn != true) && sizeof($keys) == 3)) {
           echo json_encode(array(
             'success' => false,
             'error' => 'There was an error submitting your vote. Please refresh and/or try again later.'

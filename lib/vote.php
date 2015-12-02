@@ -11,7 +11,7 @@ class Vote {
   public $data;
 
   public function __construct($data) {
-    if($data instanceof Vote) {
+    if($data instanceof Vote || (isset($data->userid) && isset($data->elecID))) {
       $this->id = $data->id;
       $this->userid = $data->userid;
       $this->elecID = $data->elecID;
