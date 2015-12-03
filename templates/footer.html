@@ -42,11 +42,17 @@
       if ($(this).attr('href') == location.pathname) $(this).parent().addClass('active');
     });
 
+    var scripts = [];
+
     if (document.location.pathname.endsWith('create-ballot')) {
-      $.getScript(document.location.pathname.replace(/\/dashboard(.*?)$/, "/js/create-ballot.js"));
+      scripts.push(document.location.pathname.replace(/\/dashboard(.*?)$/, "/js/create-ballot.js"));
     } else if (document.location.pathname.match(/\/campaign\/([0-9]+)\/?/)) {
-      $.getScript(document.location.pathname.replace(/\/campaign\/([0-9]+)\/?$/, "/js/cast-vote.js"));
+      scripts.push(document.location.pathname.replace(/\/campaign\/([0-9]+)\/?$/, "/js/cast-vote.js"));
+    } else if (document.location.pathname.match(/dashboard\/?$/)) {
+      scripts.push(document.location.pathname.replace(/dashboard\/?$/ig, "js/dashboard.js"));
     }
+
+    for(var s of scripts) $.getScript(s);
   });
 
   function swapColors() {

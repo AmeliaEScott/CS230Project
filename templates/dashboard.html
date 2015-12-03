@@ -57,17 +57,4 @@
     {% endif %}
   </div>
 
-  <script type="text/javascript">
-    function addEC() {
-      var id = document.getElementById('ecUserId').value;
-      console.log("registering id: " + id);
-      var url = document.location.pathname;
-      url += (url.endsWith('/') ? "" : "/") + "addEC";
-      $.post(url, {'user':id}, function(d){
-        console.log(d);
-      });
-      return false;
-    }
-  </script>
-
 {% include 'footer.html' %}
