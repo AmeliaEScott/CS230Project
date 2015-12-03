@@ -37,6 +37,10 @@ class User {
   }
 
   public function isAdmin() {
+    return ($this->role == 2 || $this->isSuperAdmin());
+  }
+
+  public function isSuperAdmin() {
     return ($this->role == 1);
   }
 
