@@ -52,19 +52,17 @@ $app->get(
   '/campaign/:id(/)',
   function($id) use ($app, $db) {
     $user = $app->view->get('user');
-    $q = $db->prepare('SELECT * FROM elections WHERE id = :id');
-    $q->bindParam(':id', $id);
-    if($q->execute()) {
-      $row = $q->fetch(PDO::FETCH_OBJ);
-      $elec = new Election($row);
-      if ($elec->approved != true && (!isset($user) || !$user->isAdmin())) {
-        $app->flash('error', 'You have insufficient privileges to access that election.');
-        $app->redirect($app->urlFor('homepage'));
-      } else {
-        $app->render('campaign.html', array(
-          'election' => $elec
-        ));
-      }
+    $elec = $db->getElection($id);
+
+    if ($elec->approved != true && (!isset($user) || !$user->isAdmin())) {
+      $app->flash('error', 'You have insufficient privileges to access that election.');
+      $app->redirect($app->urlFor('homepage'));
+    } else {
+      $vote = $db->getVotes($id, $user->id);
+      $app->render('campaign.html', array(
+        'election' => $elec,
+        'myvote' => $vote
+      ));
     }
   }
 )->name('election');

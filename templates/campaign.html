@@ -14,15 +14,28 @@
     <div class="jumbotron" id="electionHeader">
       <h1 class="text-center">{{election.name}}</h1>
       <br>
-      <span class="col-sm-6 col-sm-offset-3">
+      <div class="col-sm-6 col-sm-offset-3">
         <div class="panel panel-default">
           <div class="panel-heading">About this Election:</div>
           <div class="panel-body">
               {{election.description}}
           </div>
         </div>
-      </span>
+      </div>
       <div class="clearfix"></div>
+      {% if myvote %}
+      <div class="col-sm-6 col-sm-offset-3">
+        <div class="panel panel-info">
+          <div class="panel-heading"><i class="glyphicon glyphicon-info-sign"></i> Your Vote</div>
+          <div class="panel-body">
+            You cast your ballot on <b>{{myvote.time|date('m/d/Y')}}</b>.<br>
+            For confidentiality reasons, we will not display your choices here.<br>
+            Please visit <a href="{{ urlFor('dashboard')}}">your dashboard</a> to view your ballot(s).
+          </div>
+        </div>
+      </div>
+      <div class="clearfix"></div>
+      {% endif %}
     </div>
     <div class="col-sm-offset-2 col-sm-8">
       <p class="text-center">
