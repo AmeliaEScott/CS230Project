@@ -50,12 +50,20 @@
       scripts.push(document.location.pathname.replace(/\/campaign\/([0-9]+)\/?$/, "/js/cast-vote.js"));
     } else if (document.location.pathname.match(/dashboard\/?$/)) {
       scripts.push(document.location.pathname.replace(/dashboard\/?$/ig, "js/dashboard.js"));
+      scripts.push('//gitcdn.github.io/bootstrap-toggle/2.2.0/js/bootstrap-toggle.min.js');
+      scripts.push('//gitcdn.github.io/bootstrap-toggle/2.2.0/css/bootstrap-toggle.min.css');
     }
 
     console.log('loading: '+ scripts.toString());
     for(var s of scripts) {
-      var elm = document.createElement('script');
-      elm.type = 'text/javascript', elm.src = s;
+      var elm;
+      if (s.endsWith('.js')) {
+        elm = document.createElement('script');
+        elm.type = 'text/javascript', elm.src = s;
+      } else {
+        elm = document.createElement('link');
+        elm.rel = 'stylesheet', elm.href = s;
+      }
       document.body.appendChild(elm);
     }
   });

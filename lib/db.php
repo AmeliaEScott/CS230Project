@@ -20,13 +20,24 @@ class DB {
 
   public function getVotes($elecID, $userID = -1) {
     try {
-      if ($userID > 0) {
-        $q = $this->prepare("SELECT * FROM votes WHERE elecID = :id and userid = :user");
-        $q->bindParam(':user', $userID);
-      } else {
-        $q = $this->prepare("SELECT * FROM votes WHERE elecID = :id");
+      $stmt = "SELECT * FROM votes WHERE ";
+      if ($elecID > 0) {
+        $stmt .= "elecID = :id";
       }
-      $q->bindParam(':id', $elecID);
+      if ($elecID > 0 && $userID > 0) {
+        $stmt .= " and ";
+      }
+      if ($elecID == -1 || $userID > 0) {
+        $stmt .= "userid = :user";
+      }
+
+      $q = $this->prepare($stmt);
+
+      if ($elecID == -1 && $userID > 0) {
+          $q->bindParam(':user', $userID);
+      } else if ($elecID > 0 || $userID > 0) {
+          $q->bindParam(':id', $elecID);
+      }
       $q->execute();
 
       $votes = array();

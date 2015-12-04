@@ -37,6 +37,11 @@ document.getElementById('ecRemove').onclick = function() {
 }
 
 $(function(){
+  $('input[name="adminView"]').change(function() {
+      $('#studentPanel').toggleClass('hidden');
+      $('#adminPanel').toggleClass('hidden');
+  });
+
   $('span[data-approve], span[data-remove]').click(function() {
     var btn = $(this),
         type = $(this).prop('data-approve') ? 'approve' : 'remove',

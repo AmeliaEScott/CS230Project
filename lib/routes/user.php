@@ -58,7 +58,7 @@ $app->get(
       $app->flash('error', 'You have insufficient privileges to access that election.');
       $app->redirect($app->urlFor('homepage'));
     } else {
-      $vote = $db->getVotes($id, $user->id);
+      $vote = $db->getVotes($id, isset($user) ? $user->id : -1);
       $app->render('campaign.html', array(
         'election' => $elec,
         'myvote' => $vote
@@ -163,11 +163,11 @@ $app->get(
       $app->flash('error', 'You must be logged in to access that page.');
       $app->redirect($app->urlFor('homepage'));
     } else {
-      $data = array();
       if ($user->isAdmin()) {
         $data['elections'] = $db->getElection();
         $data['users'] = $db->getUser();
       }
+      $data['myvotes'] = $db->getVotes(-1, $user->id);
       $app->render('dashboard.html', $data);
     }
   }
