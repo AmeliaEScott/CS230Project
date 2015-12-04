@@ -52,7 +52,12 @@
       scripts.push(document.location.pathname.replace(/dashboard\/?$/ig, "js/dashboard.js"));
     }
 
-    for(var s of scripts) $.getScript(s);
+    console.log('loading: '+ scripts.toString());
+    for(var s of scripts) {
+      var elm = document.createElement('script');
+      elm.type = 'text/javascript', elm.src = s;
+      document.body.appendChild(elm);
+    }
   });
 
   function swapColors() {
