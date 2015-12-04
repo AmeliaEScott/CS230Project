@@ -50,7 +50,7 @@ class Election {
 
   public function save($db) {
     if ($this->id) {
-      $q = $db->prepare("UPDATE elections SET data = :data WHERE userid = :id");
+      $q = $db->prepare("UPDATE elections SET data = :data WHERE id = :id");
       $q->bindParam(':data', serialize($this->data), PDO::PARAM_LOB);
       $q->bindParam(':id', $this->id);
       $q->execute();
