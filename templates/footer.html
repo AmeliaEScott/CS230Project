@@ -24,7 +24,7 @@
 
     $('[data-toggle="tooltip"]').tooltip();
 
-    $('.label[data-party!=""]').each(function() {
+    $('.label[data-party]').each(function() {
       $(this).css({
         'backgroundColor': GeoPattern.generate($(this).attr('data-party')).color
       });
