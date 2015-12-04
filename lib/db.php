@@ -46,14 +46,28 @@ class DB {
     }
   }
 
-  public function getElection($elecID) {
+  public function getElection($elecID = -1) {
     try {
-      $q = $this->prepare("SELECT * FROM elections WHERE id = :id");
-      $q->bindParam(':id', $elecID);
+      if ($elecID == -1) {
+        $q = $this->prepare("SELECT * FROM elections");
+      } else {
+        $q = $this->prepare("SELECT * FROM elections WHERE id = :id");
+        $q->bindParam(':id', $elecID);
+      }
+
       $q->execute();
 
-      $data = $q->fetch(PDO::FETCH_OBJ);
-      return new Election($data);
+      if ($elecID == -1) {
+        $elections = array();
+        while($row = $q->fetch(PDO::FETCH_OBJ)) {
+          $elections[] = new Election($row);
+        }
+        return $elections;
+      } else {
+        $data = $q->fetch(PDO::FETCH_OBJ);
+        return new Election($data);
+      }
+
     } catch (PDOException $e) {
       if ($e->getCode() == '02000') {
         return null;
@@ -64,17 +78,33 @@ class DB {
     }
   }
 
-  public function getUser($userID) {
+  public function getUser($userID = -1) {
     try {
-      $q = $this->prepare("SELECT * FROM users WHERE userid = :id");
-      $q->bindParam(':id', $userID);
+      if ($userID == -1) {
+        $q = $this->prepare("SELECT * FROM users");
+      } else {
+        $q = $this->prepare("SELECT * FROM users WHERE userid = :id");
+        $q->bindParam(':id', $userID);
+      }
+
       $q->execute();
 
-      $data = $q->fetch(PDO::FETCH_OBJ);
-      if(isset($data->data)) {
-        $data->data = unserialize($data->data);
+      if ($userID == -1) {
+        $users = array();
+        while($row = $q->fetch(PDO::FETCH_OBJ)) {
+          if (isset($row->data)) {
+            $row->data = unserialize($row->data);
+          }
+          $users[] = new User($row);
+        }
+        return $users;
+      } else {
+        $data = $q->fetch(PDO::FETCH_OBJ);
+        if(isset($data->data)) {
+          $data->data = unserialize($data->data);
+        }
+        return new User($data);
       }
-      return new User($data);
     } catch (PDOException $e) {
       if ($e->getCode() == '02000') {
         return null;
