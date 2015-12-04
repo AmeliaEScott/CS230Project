@@ -7,6 +7,7 @@ class Election {
   public $description;
   public $ec;
   public $time;
+  public $approved;
   public $data;
 
   public function __construct($data) {
@@ -25,6 +26,7 @@ class Election {
         $this->ec = (int)$data->ec;
         $this->data = json_decode($data->data);
       }
+      $this->approved = isset($data->approved) ? $data->approved : false;
     }
   }
 
@@ -40,12 +42,12 @@ class Election {
     $this->data[$key] = $value;
   }
 
-  public function changeEC($new) {
-    $this->ec = $new;
-    $q = $db->prepare("UPDATE elections SET ec = :new WHERE id = :id");
-    $q->bindParam(':new', $this->ec);
+  public function setStatus($status, $db) {
+    $q = $db->prepare("UPDATE elections SET approved = :status WHERE id = :id");
+    $q->bindParam(':status', $status);
     $q->bindParam(':id', $this->id);
     $q->execute();
+    return ($q->rowCount() == 1);
   }
 
   public function save($db) {

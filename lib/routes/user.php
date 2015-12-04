@@ -51,15 +51,20 @@ $app->get(
 $app->get(
   '/campaign/:id(/)',
   function($id) use ($app, $db) {
+    $user = $app->view->get('user');
     $q = $db->prepare('SELECT * FROM elections WHERE id = :id');
     $q->bindParam(':id', $id);
     if($q->execute()) {
       $row = $q->fetch(PDO::FETCH_OBJ);
       $elec = new Election($row);
-      $elec->ec = $db->getUser($elec->ec);
-      $app->render('campaign.html', array(
-        'election' => $elec
-      ));
+      if ($elec->approved != true && (!isset($user) || !$user->isAdmin())) {
+        $app->flash('error', 'You have insufficient privileges to access that election.');
+        $app->redirect($app->urlFor('homepage'));
+      } else {
+        $app->render('campaign.html', array(
+          'election' => $elec
+        ));
+      }
     }
   }
 )->name('election');
@@ -154,13 +159,18 @@ $app->get(
 
 $app->get(
   '/dashboard(/)',
-  function() use($app) {
+  function() use($app, $db) {
     $user = $app->view->get('user');
     if ($user == false) {
       $app->flash('error', 'You must be logged in to access that page.');
       $app->redirect($app->urlFor('homepage'));
     } else {
-      $app->render('dashboard.html');
+      $data = array();
+      if ($user->isAdmin()) {
+        $data['elections'] = $db->getElection();
+        $data['users'] = $db->getUser();
+      }
+      $app->render('dashboard.html', $data);
     }
   }
 )->name('dashboard');
@@ -187,7 +197,7 @@ $app->post(
     $user = $app->view->get('user');
     $data = array();
     $app->response->headers->set('Content-Type', 'application/json');
-    if(!$user->isEC()) {
+    if(!isset($user) || !$user->isEC()) {
       $data['success'] = false;
       $data['message'] = 'You do not have permission to perform that action.';
     } else {

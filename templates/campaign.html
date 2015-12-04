@@ -2,6 +2,14 @@
 
 {% include 'header.html' %}
 
+  {% if election.approved == false %}
+  <div class="container">
+    <div class="alert alert-warning">
+      <b>Heads up!</b> This campaign is not yet approved. Please visit the <a href="{{ urlFor('dashboard')}}">your dashboard</a> to approve it.
+    </div>
+  </div>
+  {% endif %}
+
   <div class="container" id="main">
     <div class="jumbotron" id="electionHeader">
       <h1 class="text-center">{{election.name}}</h1>

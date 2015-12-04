@@ -60,12 +60,20 @@ class DB {
       if ($elecID == -1) {
         $elections = array();
         while($row = $q->fetch(PDO::FETCH_OBJ)) {
-          $elections[] = new Election($row);
+          $elec = new Election($row);
+          if (isset($elec->ec)) {
+            $elec->ec = $this->getUser($elec->ec);
+          }
+          $elections[] = $elec;
         }
         return $elections;
       } else {
         $data = $q->fetch(PDO::FETCH_OBJ);
-        return new Election($data);
+        $elec = new Election($data);
+        if (isset($elec->ec)) {
+          $elec->ec = $this->getUser($elec->ec);
+        }
+        return $elec;
       }
 
     } catch (PDOException $e) {
