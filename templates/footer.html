@@ -62,31 +62,64 @@
     }
 
     console.log('loading: '+ scripts.toString());
-    for(var s of scripts) {
-      var elm;
-      if (s.endsWith('.js')) {
-        elm = document.createElement('script');
-        elm.type = 'text/javascript', elm.src = s;
-      } else {
-        elm = document.createElement('link');
-        elm.rel = 'stylesheet', elm.href = s;
-      }
-      document.body.appendChild(elm);
-    }
+    loadScripts(scripts);
   });
 
+  function loadScripts(scripts) {
+    for(var s of scripts) {
+      if (typeof s == 'string') {
+        var elm;
+        if (s.endsWith('.js')) {
+          elm = document.createElement('script');
+          elm.type = 'text/javascript', elm.src = s;
+        } else {
+          elm = document.createElement('link');
+          elm.rel = 'stylesheet', elm.href = s;
+        }
+        document.body.appendChild(elm);
+      } else if (typeof s == 'object') {
+        var k = Object.keys(s)[0], v = s[k];
+        $.getScript(k).done(v);
+      }
+    }
+  }
+
+  var clippyCb = function() {
+    clippy.load('Clippy', function(agent) {
+      console.log(agent);
+      agent.show();
+      agent.speak('Hello, my name is Clippy. It seems like you have no clue what you are doing. Would you like some assistance casting a ballot?');
+      $(document).on('click', 'img[onclick="swapColors();"]', function(){
+        agent.hide();
+      });
+    });
+  }
+
   function swapColors() {
-    $("*").each(function() {
+    if (typeof clippy == 'undefined') {
+      loadScripts(['//rawgit.com/smore-inc/clippy.js/master/build/clippy.css', {'//rawgit.com/smore-inc/clippy.js/master/build/clippy.min.js': clippyCb}]);
+    } else if (easterEgg) {
+      clippyCb();
+    }
+    $("*").not('[class*="clippy"]').each(function() {
       if (easterEgg) {
         $(this).css({
-          'backgroundColor': GeoPattern.generate($(this).text()).color
+          'backgroundColor': GeoPattern.generate($(this).text()).color,
+          'fontFamily': 'Comic Sans MS'
         });
       } else {
         $(this).attr('style', function() {
-          return $(this).attr('style').replace(/background-color: .*?;/ig, "");
+          return ($(this).attr('style') || '').replace(/(font-family|background-color): .*?;/ig, "");
         });
       }
     });
+    if (easterEgg) {
+      $('#header').geopattern();
+    } else {
+      $('#header').geopattern('VoteÜ', {
+        color: '#3498DB'
+      });
+    }
     easterEgg = Number(!easterEgg);
   }
 
