@@ -44,12 +44,19 @@
 
     var scripts = [];
 
+    function scriptify(r, s) {
+      return document.location.pathname.replace(r, s);
+    }
+
     if (document.location.pathname.endsWith('create-ballot')) {
-      scripts.push(document.location.pathname.replace(/\/dashboard(.*?)$/, "/js/create-ballot.js"));
+      scripts.push(scriptify(/\/dashboard(.*?)$/, "/js/create-ballot.js"));
     } else if (document.location.pathname.match(/\/campaign\/([0-9]+)\/?/)) {
-      scripts.push(document.location.pathname.replace(/\/campaign\/([0-9]+)\/?$/, "/js/cast-vote.js"));
+      scripts.push(scriptify(/\/campaign\/([0-9]+)\/?$/, "/js/cast-vote.js"));
     } else if (document.location.pathname.match(/dashboard\/?$/)) {
-      scripts.push(document.location.pathname.replace(/dashboard\/?$/ig, "js/dashboard.js"));
+      scripts.push(scriptify(/dashboard\/?$/ig, "js/dashboard.js"));
+      {% if user.role in [1,2] %}
+      scripts.push(scriptify(/dashboard\/?$/ig, "js/dashboard-admin.js"));
+      {% endif %}
       scripts.push('//gitcdn.github.io/bootstrap-toggle/2.2.0/js/bootstrap-toggle.min.js');
       scripts.push('//gitcdn.github.io/bootstrap-toggle/2.2.0/css/bootstrap-toggle.min.css');
     }
