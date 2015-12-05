@@ -130,12 +130,10 @@ $app->group(
       $checkAuth(2),
       function() use ($app, $db) {
         $user = $app->view->get('user');
-
         $app->response->headers->set('Content-Type', 'application/json');
-        $data = array(
-          'success' => true,
-          'user' => $user
-        );
+        foreach(array('users','elections','votes') as $type) {
+          $data['num'.$type] = $db->count($type);
+        }
         $app->response->setBody(json_encode($data));
       }
     );

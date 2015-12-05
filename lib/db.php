@@ -134,6 +134,12 @@ class DB {
     }
   }
 
+  public function count($type) {
+    $q = $this->prepare("SELECT count(*) FROM ".$type);
+    $q->execute();
+    return intval($q->fetchColumn());
+  }
+
   public function prepare($q) {
     return $this->db->prepare($q);
   }
