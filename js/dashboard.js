@@ -28,15 +28,20 @@ var ec = {
   }
 }
 
-document.getElementById('ecApprove').onclick = function() {
-  ec.approve(document.getElementById('ecUserId').value);
-}
-
-document.getElementById('ecRemove').onclick = function() {
-  ec.remove(document.getElementById('ecUserId').value);
-}
-
 $(function(){
+  $('input[data-ec]').change(function() {
+    var msg = 'Are you sure you wish to ' + ($(this).prop('checked') ? 'add' : 'remove') + ' this user as an election commissioner?';
+    if (confirm(msg)) {
+      if ($(this).prop('checked')) {
+        ec.approve($(this).attr('data-ec'));
+      } else {
+        ec.remove($(this).attr('data-ec'));
+      }
+    } else {
+      $(this).prop('checked', !$(this).prop('checked'));
+    }
+  });
+
   $('input[name="adminView"]').change(function() {
       $('#studentPanel').toggleClass('hidden');
       $('#adminPanel').toggleClass('hidden');
