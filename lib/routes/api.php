@@ -40,6 +40,26 @@ $app->delete(
   }
 );
 
+$app->delete(
+  '/campaign/:id/purge(/)',
+  $checkAuth(1),
+  function($id) use ($app, $db) {
+    $user = $app->view->get('user');
+    $elec = $db->getElection($id);
+    $app->response->headers->set('Content-Type', 'application/json');
+
+    if (empty($elec)) {
+      $data['message'] = 'Election with ID "'.$id.'" doesn\'t exist.';
+    } else if ($user->isSuperAdmin()) {
+      $q = $db->prepare("DELETE FROM elections WHERE id = :id");
+      $q->bindParam(':id', $id);
+      $data['success'] = $q->execute();
+    }
+
+    $app->response->setBody(json_encode($data));
+  }
+)->name('purgeElection');
+
 $app->group(
   '/dashboard/api',
   function() use ($app, $db, $checkAuth) {
