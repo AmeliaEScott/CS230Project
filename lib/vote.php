@@ -18,7 +18,7 @@ class Vote {
       $this->raceID = $data->raceID;
       $this->candidate = $data->candidate;
       $this->time = $data->time;
-      $this->data = $data->data;
+      $this->data = json_decode($data->data);
     } else {
       $this->userid = $data->user;
       $this->elecID = $data->election;

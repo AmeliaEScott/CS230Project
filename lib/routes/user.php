@@ -171,8 +171,8 @@ $app->get(
       $app->flash('error', 'You must be logged in to access that page.');
       $app->redirect($app->urlFor('homepage'));
     } else {
+      $data['elections'] = $db->getElection();
       if ($user->isAdmin()) {
-        $data['elections'] = $db->getElection();
         $data['users'] = $db->getUser();
       }
       $data['myvotes'] = $db->getVotes(-1, $user->id);
