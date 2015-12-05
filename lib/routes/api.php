@@ -125,6 +125,61 @@ $app->group(
       }
     )->setMiddleware($checkAuth(2));
 
+    $app->post(
+      '/:type',
+      $checkAuth(2),
+      function($type) use ($app, $db) {
+        $user = $app->view->get('user');
+        $app->response->headers->set('Content-Type', 'application/json');
+
+        $userID = $app->request->post('userID');
+        $elecID = $app->request->post('elecID');
+
+        if (isset($elecID) && !isset($userID)) {
+          $data['message'] = 'Malformed query.';
+          $data['success'] = false;
+        } else {
+          $banUser = $db->getUser($userID);
+          $elec = $db->getElection($elecID);
+
+          if (empty($banUser)) {
+            $data['message'] = 'User with ID "'.$userID.'" doesn\'t exist.';
+            $data['success'] = false;
+          } else if (isset($elecID)){
+            if(empty($elec)) {
+              $data['message'] = 'Election with ID "'.$elecID.'" doesn\'t exist.';
+              $data['success'] = false;
+            } else {
+              $banned = $elec->getData('bannedUsers') || array();
+              if ($type == 'allow') {
+                if(($key = array_search($banUser->id, $banned)) !== false) {
+                  unset($banned[$key]);
+                } else {
+                  $data['message'] = $banUser->name.' is not banned from election "'.$elec->name.'".';
+                  $data['success'] = false;
+                }
+              } else {
+                $banned[] = $banUser->id;
+              }
+              $elec->setData('bannedUsers', $banned);
+              $data['success'] = $elec->save($db);
+              if (!$data['success']) {
+                $data['message'] = $db->db->errorInfo();
+              }
+            }
+          } else {
+            $banUser->setData('banned', $type == 'disqualify');
+            $data['success'] = $banUser->save($db);
+            if (!$data['success']) {
+              $data['message'] = $db->db->errorInfo();
+            }
+          }
+        }
+
+        $app->response->setBody(json_encode($data));
+      }
+    )->conditions(array('route' => '(allow|disqualify)'))->setMiddleware($checkAuth(2));
+
     $app->get(
       '/sysinfo',
       $checkAuth(2),

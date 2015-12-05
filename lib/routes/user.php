@@ -84,6 +84,14 @@ $app->post(
       return;
     }
 
+    if ($user->getData('banned') == true || ($key = array_search($user->id, $elec->getData('bannedUsers') || array())) != false) {
+      echo json_encode(array(
+        'success' => false,
+        'error' => 'You do not have permission to cast a vote in this election.'
+      ));
+      return;
+    }
+
     if (!empty($prevVote)) {
       echo json_encode(array(
         'success' => false,

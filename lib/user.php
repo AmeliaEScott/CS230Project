@@ -32,8 +32,7 @@ class User {
     $q = $db->prepare("UPDATE users SET data = :data WHERE userid = :id");
     $q->bindParam(':data', serialize($this->data), PDO::PARAM_LOB);
     $q->bindParam(':id', $this->id);
-    $q->execute();
-    return ($q->rowCount() == 1);
+    return $q->execute();
   }
 
   public function isAdmin() {

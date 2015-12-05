@@ -5,10 +5,10 @@ function apiurlify(s) {
 
 var ec = {
   remove: function(id) {
-    this.do(0, id);
+    return this.do(0, id);
   },
   approve: function(id) {
-    this.do(1, id);
+    return this.do(1, id);
   },
   do: function(n, id) {
     var opts = {
@@ -16,29 +16,70 @@ var ec = {
       method: (n ? 'POST' : 'DELETE')
     };
     if (n) opts.data = {'user': id};
-    $.ajax(opts).done(function(d) {
-      msg = 'User with ID ' + id + ' is no';
-      if (typeof d == 'object' && d.success) {
-        msg += (n ? 'w' : ' longer') + ' an election commissioner.';
-      } else {
-        msg = d.message;
-      }
-      alert(msg);
-    });
+    return $.ajax(opts);
+  }
+};
+
+var user = {
+  dq: function(allow, id) {
+    var opts = {
+      url: apiurlify(allow ? 'allow' : 'disqualify'),
+      method: 'POST',
+      data: {'userID': id}
+    };
+    return $.ajax(opts);
   }
 }
 
 $(function(){
   $('input[data-ec]').change(function() {
-    var msg = 'Are you sure you wish to ' + ($(this).prop('checked') ? 'add' : 'remove') + ' this user as an election commissioner?';
+    var addEC = $(this).prop('checked'),
+        msg = 'Are you sure you wish to ' + (addEC ? 'add' : 'remove') + ' this user as an election commissioner?',
+        dataCol = $(this).parent().next().next(),
+        id = $(this).attr('data-ec'),
+        cb = function(d) {
+          var userData = JSON.parse(dataCol.text() || {}), msg;
+          if (typeof d == 'object' && d.success) {
+            msg = 'User with ID ' + id + ' is no' + (addEC ? 'w' : ' longer') + ' an election commissioner.';
+          } else {
+            msg = d.message;
+          }
+          userData['isEC'] = addEC
+          alert(msg);
+          dataCol.fadeOut(500, function() {
+            $(this).text(JSON.stringify(userData));
+          }).fadeIn(500);
+        };
     if (confirm(msg)) {
       if ($(this).prop('checked')) {
-        ec.approve($(this).attr('data-ec'));
+        ec.approve(id).done(cb);
       } else {
-        ec.remove($(this).attr('data-ec'));
+        ec.remove(id).done(cb);
       }
     } else {
       $(this).prop('checked', !$(this).prop('checked'));
+    }
+  });
+
+  $('input[data-dq]').change(function() {
+    var allow = !$(this).prop('checked'),
+        msg = 'Are you sure you wish to ' + (!allow ? 'disqualify' : 're-allow') + ' this user from casting votes?',
+        dataCol = $(this).parent().next(),
+        id = $(this).attr('data-dq');
+    if (confirm(msg)) {
+      user.dq(allow, id).done(function(d) {
+        var msg = 'User with ID ' + id + ' is now ' + (!allow ? 'banned from voting across all elections.' : 're-allowed to vote in all elections.'),
+            userData = JSON.parse(dataCol.text()|| {});
+        if (typeof d == 'object' && d.success) {
+          alert(msg);
+        } else if (typeof d == 'object' && !d.success) {
+          alert('Error: ' + d.message);
+        }
+        userData["banned"] = !allow;
+        dataCol.fadeOut(500, function() {
+          $(this).text(JSON.stringify(userData));
+        }).fadeIn(500);
+      });
     }
   });
 
