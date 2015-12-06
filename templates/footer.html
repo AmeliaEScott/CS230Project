@@ -56,9 +56,9 @@
       scripts.push(scriptify(/dashboard\/?$/ig, "js/dashboard.js"));
       {% if user.role in [1,2] %}
       scripts.push(scriptify(/dashboard\/?$/ig, "js/dashboard-admin.js"));
-      {% endif %}
       scripts.push('//gitcdn.github.io/bootstrap-toggle/2.2.0/js/bootstrap-toggle.min.js');
       scripts.push('//gitcdn.github.io/bootstrap-toggle/2.2.0/css/bootstrap-toggle.min.css');
+      {% endif %}
     }
 
     console.log('loading: '+ scripts.toString());

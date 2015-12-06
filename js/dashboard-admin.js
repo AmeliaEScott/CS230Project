@@ -29,6 +29,7 @@ var user = {
 }
 
 $(function(){
+
   $('span[data-ecEdit]').click(function() {
     if (confirm('Are you sure you wish to change the election commissioner on this election?')) {
       $('div#changeECmodal').modal('toggle');
@@ -112,7 +113,16 @@ $(function(){
   $('input[name="adminView"]').change(function() {
       $('#studentPanel').toggleClass('hidden');
       $('#adminPanel').toggleClass('hidden');
+      if (window.location.hash == '#admin') {
+        window.location.hash = '';
+      } else {
+        window.location.hash = 'admin';
+      }
   });
+
+  if (document.location.hash == '#admin') {
+    $('input[name="adminView"]').bootstrapToggle('on');
+  }
 
   $('span[data-approve], span[data-remove]').click(function() {
     var btn = $(this),
