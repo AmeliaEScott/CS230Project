@@ -73,12 +73,28 @@ $app->group(
         $ecUser = $db->getUser($app->request->post('user'));
 
         if (empty($ecUser)) {
-            $data['message'] = 'User with ID "'.$app->request->post('user').'" doesn\'t exist.';
-        } else if ($ecUser->isEC()) {
-            $data['message'] = 'User "'.$ecUser->name.'" is already an election commissioner.';
+          $data['message'] = 'User with ID "'.$app->request->post('user').'" doesn\'t exist.';
+        } else if ($app->request->post('elec')) {
+          $elec = $db->getElection($app->request->post('elec'));
+          if (empty($elec)) {
+            $data['success'] = false;
+            $data['message'] = 'Election with ID "'.$app->request->post('elec').'" doesn\'t exist.';
+          } else {
+            $elec->ec = $ecUser->id;
+            if (!$ecUser->isEC()) {
+              $ecUser->setData('isEC', true);
+              $data['success'] = ($elec->save($db) && $ecUser->save($db));
+            } else {
+              $data['success'] = $elec->save($db);
+            }  
+          }
         } else {
-          $ecUser->setData('isEC', true);
-          $data['success'] = $ecUser->save($db);
+          if ($ecUser->isEC()) {
+            $data['message'] = 'User "'.$ecUser->name.'" is already an election commissioner.';
+          } else {
+            $ecUser->setData('isEC', true);
+            $data['success'] = $ecUser->save($db);
+          }
         }
 
         $app->response->setBody(json_encode($data));

@@ -39,11 +39,29 @@
   {% endif %}
   <div>
     <h4>Manage Elections</h4>
-    <div class="col-sm-7">
-      <div class="table-responsive">
+    <div class="col-sm-10">
+      <div class="table">
         <table class="table">
           <caption>
-            These are all elections currently in the system. From here, you can do stuff to said elections.
+            <p>
+              These are all elections currently in the system. From here, you can do stuff to said elections.
+            </p>
+            <p class="row">
+              <ul class="list-inline">
+                <li>
+                  <span class="col-sm-2 bg-success">&nbsp;</span>
+                  <span class="col-sm-offset-1">= Active</span>
+                </li>
+                <li>
+                  <span class="col-sm-2 bg-info">&nbsp;</span>
+                  <span class="col-sm-offset-1">= Finished</span>
+                </li>
+                <li>
+                  <span class="col-sm-2 bg-danger">&nbsp;</span>
+                  <span class="col-sm-offset-1">= Not Approved</span>
+                </li>
+              </ul>
+            </p>
           </caption>
           <thead>
             <tr>
@@ -56,6 +74,10 @@
           </thead>
           <tbody>
             {% for e in elections %}
+            {% set ecUser, breakUser = {}, false %}
+            {% for u in users if (u.id == e.ec.id and not breakUser) %}
+              {% set ecUser, breakUser = u, true %}
+            {% endfor %}
             <tr class="{{e.approved ? 'success' : 'danger'}}">
               <th scope="row">
                 <span class="btn btn-xs btn-{{e.approved ? 'danger' : 'success'}}" data-{{e.approved ? 'remove' : 'approve'}}="{{e.id}}">
@@ -65,7 +87,12 @@
               <td>{{e.id}}</td>
               <td><a href="{{ urlFor('election', {id: e.id}) }}">{{e.name}}</a></td>
               <td>{{e.description}}</td>
-              <td>{{e.ec.id}}</td>
+              <td>
+                {{ecUser.name}}
+                <span class="badge cursor-pointer hidden" data-ecEdit="{{e.id}}">
+                  <i class="glyphicon glyphicon-edit"></i>
+                </span>
+              </td>
             </tr>
             {% endfor %}
           </tbody>
@@ -117,6 +144,40 @@
             {% endfor %}
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" tabindex="-1" role="dialog" id="changeECmodal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-sm-8 col-sm-offset-2">
+            <p>Please select a new election commissioner to assign to this election.</p>
+            <div class="form text-center">
+              <div class="form-group">
+                <input type="hidden" name="changeECid">
+                <select name="ecUsers">
+                  {% for u in users %}
+                  <option value="{{u.id}}">{{u.name}}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-8">
+                  <button class="btn btn-danger" id="changeEC">Change</button>
+                </div>
+              </div>
+            </div>
+            <br><br>
+            <hr>
+            <p>
+              <b>Note:</b> This will only change this election's current election commisioner to your selection. The current election commissinoer will retain their "election commissioner" role. To remove this, use the tools in the dashboard.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   </div>

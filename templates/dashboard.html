@@ -35,11 +35,10 @@
               </thead>
               <tbody>
                 {% for v in myvotes %}
-                  {% set elec, breakElec = {}, false %}
-                  {% for e in elections if (e.id == v.elecID and not breakElec) %}
-                    {% set elec, breakElec = e, true %}
+                  {% set elec = {} %}
+                  {% for e in elections if e.id == v.elecID %}
+                    {% set elec = e %}
                   {% endfor %}
-                  {% set r = elec.Races()[v.raceID] %}
                   <tr>
                     <td>
                       <a href="{{ urlFor('election', {id: v.elecID}) }}">
@@ -47,6 +46,7 @@
                       </a>
                     </td>
                     <td>{{v.time|date('M jS, Y \\a\\t g:ia')}}</td>
+                    {% set elecRaces, r = elec.getRaces(), elecRaces[v.raceID] %}
                     <td>{{r.raceName}}</td>
                     <td>{{v.candidate == -1 ? v.data.writein : r.candidates[v.candidate].name}}</td>
                   </tr>

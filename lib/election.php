@@ -52,9 +52,14 @@ class Election {
 
   public function save($db) {
     if ($this->id) {
-      $q = $db->prepare("UPDATE elections SET data = :data WHERE id = :id");
-      $q->bindParam(':data', serialize($this->data), PDO::PARAM_LOB);
+      $q = $db->prepare("UPDATE elections SET ec = :ec, data = :data WHERE id = :id");
+      if (is_string($this->data)) {
+        $q->bindParam(':data', $this->data);
+      } else {
+        $q->bindParam(':data', serialize($this->data), PDO::PARAM_LOB);
+      }
       $q->bindParam(':id', $this->id);
+      $q->bindParam(':ec', $this->ec);
       $q->execute();
       return ($q->rowCount() == 1);
     } else {

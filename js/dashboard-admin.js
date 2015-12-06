@@ -1,4 +1,7 @@
 var ec = {
+  change : function(n, id) {
+    return this.do(-1, {'user': id, 'elec': n});
+  },
   remove: function(id) {
     return this.do(0, id);
   },
@@ -6,12 +9,11 @@ var ec = {
     return this.do(1, id);
   },
   do: function(n, id) {
-    var opts = {
-      url: apiurlify('commissioners' + (n ? '' : ('/' + id))),
-      method: (n ? 'POST' : 'DELETE')
-    };
-    if (n) opts.data = {'user': id};
-    return $.ajax(opts);
+    return $.ajax({
+      url: apiurlify('commissioners' + (Boolean(Math.abs(n)) ? '' : ('/' + id))),
+      method: (Boolean(Math.abs(n)) ? 'POST' : 'DELETE'),
+      data: (Boolean(Math.abs(n)) ? (n == -1 ? id : {'user': id}) : {})
+    });
   }
 };
 
@@ -27,6 +29,35 @@ var user = {
 }
 
 $(function(){
+  $('span[data-ecEdit]').click(function() {
+    if (confirm('Are you sure you wish to change the election commissioner on this election?')) {
+      $('div#changeECmodal').modal('toggle');
+      $('input[name="changeECid"]').val($(this).attr('data-ecEdit'));
+    }
+  });
+
+  $('button#changeEC').click(function() {
+    var ecUser = {
+      id: $('select[name="ecUsers"]').val(),
+      name: $('select[name="ecUsers"] option:selected').text()
+    }, elecID = $('input[name="changeECid"]').val();
+    ec.change(elecID, ecUser.id).done(function(d) {
+      if (d.success) {
+        alert('User "' + ecUser.name + '" is now the election commissioner of this election.');
+        $("span[data-ecedit='" + elecID + "']").parent().contents().filter(function(){
+          return this.nodeType == 3;
+        })[0].nodeValue = ecUser.name + ' ';
+      } else {
+        alert('Error: ' + d.message);
+      }
+      $('div#changeECmodal').modal('toggle');
+    });
+  });
+
+  $('span[data-ecEdit]').parent().parent().hover(function() {
+    $(this).find('span[data-ecEdit]').toggleClass('hidden');
+  });
+
   $('input[data-ec]').change(function() {
     var addEC = $(this).prop('checked'),
         msg = 'Are you sure you wish to ' + (addEC ? 'add' : 'remove') + ' this user as an election commissioner?',
