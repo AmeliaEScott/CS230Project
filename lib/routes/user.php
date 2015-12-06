@@ -54,14 +54,13 @@ $app->get(
     $user = $app->view->get('user');
     $elec = $db->getElection($id);
 
-    if ($elec->approved != true && (!isset($user) || !$user->isAdmin())) {
+    if (!$elec->approved && (!isset($user) || !$user->isAdmin())) {
       $app->flash('error', 'You have insufficient privileges to access that election.');
       $app->redirect($app->urlFor('homepage'));
     } else {
-      $vote = $db->getVotes($id, isset($user) ? $user->id : -1);
       $app->render('campaign.html', array(
         'election' => $elec,
-        'myvote' => $vote
+        'myvote' => isset($user) ? $db->getVotes($id, $user->id) : null
       ));
     }
   }
@@ -84,7 +83,12 @@ $app->post(
       return;
     }
 
-    if ($user->getData('banned') == true || ($key = array_search($user->id, $elec->getData('bannedUsers') || array())) != false) {
+    $banKey = array_search(
+      $user->id,
+      $elec->getData('bannedUsers') == null ? array() : $elec->getData('bannedUsers')
+    );
+
+    if ($user->getData('banned') == true || $banKey != false) {
       echo json_encode(array(
         'success' => false,
         'error' => 'You do not have permission to cast a vote in this election.'

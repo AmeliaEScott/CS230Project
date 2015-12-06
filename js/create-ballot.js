@@ -14,11 +14,12 @@ $.getScript('http://cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker
    timePickerIncrement: 30,
    locale: {
        format: 'MM/DD/YYYY h:mm A'
-   }
+   },
+   drops: 'up'
   });
 });
 
-$('[data-submit!=""]').click(function(e) {
+$('[data-submit]').click(function(e) {
   e.preventDefault();
   var id = $(this).attr('data-submit');
   $(id).submit();
@@ -33,24 +34,27 @@ $('input[name=allowWriteIn]').change(function() {
   $('input[name=verifyWriteIn]').prop('disabled', !$(this).is(":checked"));
 });
 
-$('input[name=ballotRaces]').change(function() {
-  var data = JSON.parse($(this).attr('value') || '[]');
+Handlebars.registerHelper('json', function(context) {
+    return JSON.stringify(context);
+});
+
+$('input[name=ballotRaces]').change(function(e) {
+  var data = JSON.parse(e.target.value || '{}');
   var src = $('#ballotRacesResultsTemplate').html();
   var tmpl = Handlebars.compile(src);
   $('#ballotRacesResults')[0].innerHTML = tmpl({race: data});
   $('#ballotRacesResults').prop('class', false);
 });
 
-$('input[name=candidates]').change(function() {
-  var data = JSON.parse($(this).attr('value') || '[]');
+$('input[name=candidates]').change(function(e) {
+  var data = JSON.parse(e.target.value || '[]');
   var src = $('#candidatesResultsTemplate').html();
   var tmpl = Handlebars.compile(src);
   $('#candidatesResults')[0].innerHTML = tmpl(data);
-  $('#candidatesResults').prop('class', false);
+  $('#candidatesResults').removeClass('hidden');
 });
 
-$('body').on('click', '.glyphicon-trash[data-action!=""]', function(){
-  console.log("clicked trash");
+$('body').on('click', '.glyphicon-trash[data-action]', function(){
   var v = $(this).attr('data-action').split(':');
   var elm = 'input[name=' + (v[0] == 'removeRace' ? 'ballotRaces' : 'candidates') + ']';
   var data = JSON.parse($(elm).attr('value') || '[]');
@@ -69,6 +73,9 @@ $('#addRaceForm, #addCandidateForm').submit(function(e){
   data.push(getFormData($(this)));;
   $('input[name="'+vals[$(this).attr('id')][0]+'"]').attr('value', JSON.stringify(data)).trigger('change');
   $(this)[0].reset();
+  $(this).find('input[name="verifyWriteIn"]').prop('disabled', true);
+  $(this).find('input[name="candidates"]').val('');
+  if ($(this).attr('id') == 'addRaceForm') $('#candidatesResults').html('');
   $('#' + vals[$(this).attr('id')][1]).modal('hide');
 });
 

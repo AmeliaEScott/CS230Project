@@ -53,7 +53,16 @@ $app->delete(
     } else if ($user->isSuperAdmin()) {
       $q = $db->prepare("DELETE FROM elections WHERE id = :id");
       $q->bindParam(':id', $id);
-      $data['success'] = $q->execute();
+      if ($q->execute()) {
+        $q = $db->prepare("DELETE FROM votes WHERE elecID = :id");
+        $q->bindParam(':id', $id);
+        $data['success'] = $q->execute();
+        if (!$data['success']) {
+          $data['message'] = $db->db->errorInfo();
+        }
+      } else {
+        $data['message'] = $db->db->errorInfo();
+      }
     }
 
     $app->response->setBody(json_encode($data));
@@ -86,7 +95,7 @@ $app->group(
               $data['success'] = ($elec->save($db) && $ecUser->save($db));
             } else {
               $data['success'] = $elec->save($db);
-            }  
+            }
           }
         } else {
           if ($ecUser->isEC()) {

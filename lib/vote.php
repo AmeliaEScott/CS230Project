@@ -60,6 +60,9 @@ class Vote {
 
       if ($q->rowCount() == 1) {
         $this->id = (int)$db->db->lastInsertId();
+        return true;
+      } else {
+        return false;
       }
     }
   }

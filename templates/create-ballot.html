@@ -45,32 +45,29 @@
                   <span class="glyphicon glyphicon-trash pull-right" data-action="removeRace:{{@index}}"></span>
                 </div>
                 <div class="panel-body">
-                  <dl>
+                  <dl class="dl-horizontal">
                     <dt>Description</dt>
                     <dd>{{raceDesc}}</dd>
+                    <dt>Candidates</dt>
+                    <dd>
+                      {{#each candidates}}
+                        {{name}}
+                        {{#if party~}}
+                          <span class="label label-default">{{party}}</span>
+                        {{~/if}}{{#unless @last}},{{/unless}}
+                      {{/each}}
+                    </dd>
                     <dt>Allow Write-In?</dt>
-                    <dd>{{#if allowWriteIn}}true{{^}}false{{/if}}</dd>
-                    {{#if allowWriteIn}}
-                    <dt>Verify Write-In as Valid Faculty?</dt>
-                    <dd>{{#if verifyWriteIn}}true{{^}}false{{/if}}</dd>
-                    {{/if}}
+                    <dd>
+                    {{~#if allowWriteIn~}}
+                      true
+                      {{~#if verifyWriteIn}} (and verify){{/if~}}
+                    {{~^~}}
+                      false
+                    {{~/if~}}
+                    </dd>
                   </dl>
                 </div>
-                <table class="table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Party</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {{#each candidates}}
-                      <tr>
-                          <td>{{this}}</td>
-                      </tr>
-                    {{/each}}
-                  </tbody>
-                </table>
               </div>
               {{/race}}
               {% endverbatim %}

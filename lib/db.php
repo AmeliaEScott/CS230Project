@@ -20,23 +20,22 @@ class DB {
 
   public function getVotes($elecID, $userID = -1) {
     try {
-      $stmt = "SELECT * FROM votes WHERE ";
+      $stmt;
       if ($elecID > 0) {
-        $stmt .= "elecID = :id";
-      }
-      if ($elecID > 0 && $userID > 0) {
-        $stmt .= " and ";
-      }
-      if ($elecID == -1 || $userID > 0) {
-        $stmt .= "userid = :user";
+        $stmt = "SELECT * FROM votes WHERE elecID = :id";
+        if ($userID > 0) {
+          $stmt .= " and userid = :user";
+        }
+      } else if ($elecID == -1 && $userID > 0) {
+        $stmt = "SELECT * FROM votes WHERE userid = :user";
       }
 
       $q = $this->prepare($stmt);
-
-      if ($elecID == -1 && $userID > 0) {
-          $q->bindParam(':user', $userID);
-      } else if ($elecID > 0 || $userID > 0) {
-          $q->bindParam(':id', $elecID);
+      if ($userID > 0) {
+        $q->bindParam(':user', $userID);
+      }
+      if ($elecID > 0) {
+        $q->bindParam(':id', $elecID);
       }
       $q->execute();
 
@@ -51,7 +50,7 @@ class DB {
       if ($e->getCode() == '02000') {
         return null;
       } else {
-        error_log($e->getMessage());
+        error_log('getVotes('.$elecID.', '.$userID.'): '.$e->getMessage());
         return false;
       }
     }

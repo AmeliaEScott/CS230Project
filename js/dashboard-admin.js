@@ -126,8 +126,7 @@ $(function(){
 
   $('span[data-approve], span[data-remove]').click(function() {
     var btn = $(this),
-        type = $(this).prop('data-approve') ? 'approve' : 'remove',
-        id = $(this).attr('data-' + type),
+        id = ($(this).attr('data-approve') || $(this).attr('data-remove')),
         row = $(this).parent().parent();
     if (id.length != 0 && !isNaN(id)) {
       var cb = function(d) {
@@ -139,9 +138,9 @@ $(function(){
           alert(d.message);
         }
       }
-      if (type == 'approve') {
+      if ($(this).attr('data-approve')) {
         $.post(apiurlify('approve'), {'elecID': id}, cb);
-      } else {
+      } else if ($(this).attr('data-remove')) {
         $.ajax({
           url: document.location.pathname.replace(/dashboard\/?$/, 'campaign/' + id),
           method: 'DELETE'
