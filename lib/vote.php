@@ -28,7 +28,7 @@ class Vote {
   }
 
   public function getData($key) {
-    if(isset($this->data[$key])) {
+    if(isset($this->data) && isset($this->data[$key])) {
       return $this->data[$key];
     } else {
       return null;

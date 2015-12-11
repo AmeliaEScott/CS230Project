@@ -12,7 +12,7 @@
         <h3>Current Campaigns</h3>
         <table class="table">
           <tbody>
-          {% for election in elections %}
+          {% for election in elections if election.approved %}
             <tr>
               <td><a href="{{urlFor('election', {'id': election.id})}}">{{election.name}}</a></td>
               <td>ends <script defer type="text/javascript">document.write(moment("{{election.time}}".split(" - ")[1]).fromNow());</script></td>
@@ -25,7 +25,16 @@
       </span>
       <span class="col-sm-6">
         <h3>Recent Results</h3>
-        <img src="https://placehold.it/500x250?text=recent results here">
+        <table class="table">
+          <tbody>
+            {% for e in elections if (e.data('certified') and e.approved) %}
+              <tr>
+                <td><a href="{{urlFor('electionResults', {'id': e.id})}}">{{e.name}}</a></td>
+                <td></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </span>
     </div>
   </div>

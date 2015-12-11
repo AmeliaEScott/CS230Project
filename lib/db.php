@@ -26,8 +26,8 @@ class DB {
         if ($userID > 0) {
           $stmt .= " and userid = :user";
         }
-      } else if ($elecID == -1 && $userID > 0) {
-        $stmt = "SELECT * FROM votes WHERE userid = :user";
+      } else if ($elecID == -1) {
+        $stmt = "SELECT * FROM votes".(($userID > 0) ? " WHERE userid = :user" : "");
       }
 
       $q = $this->prepare($stmt);

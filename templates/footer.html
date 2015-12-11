@@ -8,6 +8,9 @@
   </p>
 </footer>
 
+{% if user.IsAdmin %}
+<span class="hidden" id="pageDataDebug">{{_context|json_encode()}}</span>
+{% endif %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <script src="/vote/js/bootstrap.min.js"></script>
 <script src="https://rawgit.com/js-cookie/js-cookie/master/src/js.cookie.js"></script>
@@ -15,6 +18,8 @@
 <script type="text/javascript">
   var sessid, easterEgg = 1;
   $(function() {
+    $('[data-toggle="tooltip"]').tooltip();
+
     $(".modal input:checkbox,.modal label").on("click", function(e) {
       e.stopImmediatePropagation();
       var element = (e.currentTarget.hasOwnProperty('htmlFor')) ? e.currentTarget.htmlFor : e.currentTarget;
@@ -50,11 +55,13 @@
 
     if (document.location.pathname.endsWith('create-ballot')) {
       scripts.push(scriptify(/\/dashboard(.*?)$/, "/js/create-ballot.js"));
-    } else if (document.location.pathname.match(/\/campaign\/([0-9]+)\/?/)) {
+    } else if (document.location.pathname.match(/\/campaign\/([0-9]+)\/?$/)) {
       scripts.push(scriptify(/\/campaign\/([0-9]+)\/?$/, "/js/cast-vote.js"));
+    } else if (document.location.pathname.match(/\/campaign\/([0-9]+)\/results/)) {
+      scripts.push(scriptify(/\/campaign\/([0-9]+)\/results.*$/, "/js/results.js"));
     } else if (document.location.pathname.match(/dashboard\/?$/)) {
       scripts.push(scriptify(/dashboard\/?$/ig, "js/dashboard.js"));
-      {% if user.role in [1,2] %}
+      {% if user.IsAdmin %}
       scripts.push(scriptify(/dashboard\/?$/ig, "js/dashboard-admin.js"));
       scripts.push('//gitcdn.github.io/bootstrap-toggle/2.2.0/js/bootstrap-toggle.min.js');
       scripts.push('//gitcdn.github.io/bootstrap-toggle/2.2.0/css/bootstrap-toggle.min.css');
@@ -142,7 +149,14 @@
     var indexed_array = {};
 
     $.map(unindexed_array, function(n, i) {
-      indexed_array[n['name']] = isJsonStr(n['value']) ? JSON.parse(n['value']) : n['value'];
+      if (n['name'].indexOf(':writein') != -1 && n['value'] == ''){
+        return false;
+      }
+      if (n['name'] == 'restrictions') {
+        indexed_array[n['name']] = $('[name="' + n['name'] + '"]').val();
+      } else {
+        indexed_array[n['name']] = isJsonStr(n['value']) ? JSON.parse(n['value']) : n['value'];
+      }
     });
 
     return indexed_array;

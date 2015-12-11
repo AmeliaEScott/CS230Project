@@ -2,9 +2,136 @@
 
 {% include 'header.html' %}
 
-  <div class="container" id="main">
-    <div style="padding:5em;text-align:center">
-      <h3>This page intentionally left blank.</h3>
+  {% if user.IsAdmin and not election.getData('certified') %}
+  <div class="container">
+    <div class="alert alert-warning clearfix">
+      <b>Heads up!</b> These results are not yet published. Once you certify them, they will be available to the public and the ballot will be closed.
+      <span class="btn btn-primary pull-right" data-certify="{{election.id}}">
+        <i class="glyphicon glyphicon-check"></i> Certify
+      </span>
+    </div>
+  </div>
+  {% endif %}
+  <div class="container" id="main" style="padding-top:2.5em;">
+    <div class="col-sm-offset-1 col-sm-10">
+      <span class="pull-left">
+        <a href="{{ urlFor('election', {id: election.id})}}">&#8592; back to election</a>
+      </span>
+      <div>
+        <h2 class="text-center">{{election.name}}</h2>
+        <br>
+        <span class="col-sm-8 col-sm-offset-2 text-center">
+          <p>
+            {{election.description}}<br><br>
+          </p>
+          {% set times = election.time|split(' - ') %}
+          <dl class="dl-horizontal">
+            <dt>Created by:</dt>
+            <dd>{{election.ec.name}}</dd>
+            <dt>Opened:</dt>
+            <dd>{{times[0]}}</dd>
+            <dt>Closed:</dt>
+            <dd>{{times[1]}}</dd><br><br>
+            <dt>Total Respondents:</dt>
+            <dd>{{votes|length}}</dd>
+          </dl>
+        </span>
+        <div class="clearfix"></div>
+      </div>
+      <hr>
+      <div>
+        <h3>Election Results</h3>
+        {% for race in election.getRaces() %}
+        <span class="hidden">{{race|json_encode()}}</span>
+          {% set votedb, raceID = [], loop.index0 %}
+          {% for v in votes if v.raceID == raceID %}
+            {% set votedb = votedb is empty ? [v] : votedb|merge([v]) %}
+          {% endfor %}
+        <span class="hidden">{{votedb|json_encode()}}</span>
+        <div class="row">
+          <div class="col-sm-offset-1 col-sm-5">
+            <h4>{{race.raceName}} <small>{{votedb|length}} total votes</small></h4>
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Position</th>
+                  <th>Candidate</th>
+                  <th>Number of Votes</th>
+                  <th>Percent of Votes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for c in race.candidates %}
+                {% set canID, voteCount = loop.index0, 0 %}
+                <tr class="canRow" data-candidate="{{c|json_encode()}}" data-canID="{{canID}}">
+                  <td></td>
+                  <td>{{c.name}}</td>
+                  <td>
+                    {% for v in votedb if (v.candidate == -1 ? (v.data.writein == c.name) : (v.candidate == canID)) %}
+                      {% set voteCount = voteCount + 1 %}
+                    {% endfor %}
+                    {{voteCount}}
+                  </td>
+                  <td>
+                    {{votedb|length > 0 ? (voteCount/(votedb|length) * 100)|number_format(2, '.') : 0}}%
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="col-sm-6">
+
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div>
+        <h3>Votes Cast</h3>
+        {% if user.IsAdmin %}
+        <table class="table table-bordered">
+          <caption>This is a listing of all votes cast in this election. This is only available for system administrators and the Head of Student Orgs.</caption>
+          <thead>
+            <tr>
+              <th>Actions</th>
+              <th>User</th>
+              <th>Time</th>
+              <th>Race</th>
+              <th>Candidate</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for v in votes %}
+            {% set race = election.getRaces()[v.raceID] %}
+            <tr>
+              <td>
+                {% if v.userid not in election.data('bannedUsers') %}
+                <i class="cursor-pointer glyphicon glyphicon-ban-circle" data-toggle="tooltip" data-placement="top" title="Disqualify" data-disqualify="{{v.userid}}"></i>
+                {% else %}
+                <i class="cursor-pointer glyphicon glyphicon-ok-circle" data-toggle="tooltip" data-placement="top" title="Allow" data-approve="{{v.userid}}"></i>
+                {% endif %}
+              </td>
+              <td>
+                {% set username = '' %}
+                {% for u in users if u.id == v.userid %}
+                  {% set username = u.name %}
+                {% endfor %}
+                {{username}}
+              </td>
+              <td>{{v.time|date('M jS, Y \\a\\t g:ia')}}</td>
+              <td>{{race.raceName}}</td>
+              <td>{{v.candidate == -1 ? ('Write-In: <em>' + v.data.writein + '</em>') : race.candidates[v.candidate].name}}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <div>
+          {% if election.data('bannedUsers') is not empty %}
+          Users with the following IDs are banned from this election: {{election.data.bannedUsers|join(', ')}}
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
     </div>
   </div>
 

@@ -69,6 +69,28 @@ $app->delete(
   }
 )->name('purgeElection');
 
+$app->post(
+  '/campaign/:id/results',
+  $checkAuth(2),
+  function($id) use ($app, $db) {
+    $user = $app->view->get('user');
+    $elec = $db->getElection($id);
+    $app->response->headers->set('Content-Type', 'application/json');
+
+    if (empty($elec)) {
+      $data['message'] = 'Election with ID "'.$id.'" doesn\'t exist.';
+      $data['success'] = false;
+    } else {
+      if ($app->request->post('certify')) {
+        $elec->setData('certified', $app->request->post('certify'));
+      }
+      $data['success'] = $elec->save($db);
+    }
+
+    $app->response->setBody(json_encode($data));
+  }
+)->name('postResults');
+
 $app->group(
   '/dashboard/api',
   function() use ($app, $db, $checkAuth) {
@@ -130,6 +152,29 @@ $app->group(
       }
     )->setMiddleware($checkAuth(2));
 
+    $app->put(
+      '/users/:id(/)',
+      $checkAuth(1),
+      function($id) use ($app, $db) {
+        $app->response->headers->set('Content-Type', 'application/json');
+        $editUser = $db->getUser($id);
+        $data = array();
+
+        if (empty($editUser)) {
+          $data['message'] = 'User with ID "'.$id.'" doesn\'t exist.';
+          $data['success'] = false;
+        } else {
+          $usrData = $app->request->put('data');
+          if ($usrData != null && (is_object($usrData) || is_array($usrData))) {
+            $editUser->data = $usrData;
+            $data['success'] = $editUser->save($db);
+          }
+        }
+
+        $app->response->setBody(json_encode($data));
+      }
+    )->setMiddleware($checkAuth(1));
+
     $app->post(
       '/approve',
       $checkAuth(2),
@@ -175,7 +220,7 @@ $app->group(
               $data['message'] = 'Election with ID "'.$elecID.'" doesn\'t exist.';
               $data['success'] = false;
             } else {
-              $banned = $elec->getData('bannedUsers') || array();
+              $banned = (array)$elec->getData('bannedUsers');
               if ($type == 'allow') {
                 if(($key = array_search($banUser->id, $banned)) !== false) {
                   unset($banned[$key]);

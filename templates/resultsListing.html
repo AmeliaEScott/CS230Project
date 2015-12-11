@@ -1,0 +1,37 @@
+{% include 'head.html' %}
+
+{% include 'header.html' %}
+
+<div class="container" id="main">
+  <div class="page-header text-center">
+    <h2>Recent Results</h2>
+    <p>
+      These results have been reviewed by the Head of Student Organizations. For any errors, please contact them.
+    </p>
+  </div>
+  <div class="col-sm-offset-2 col-sm-8">
+    <div class="list-group">
+      <div class="list-group-item row">
+        <p class="col-sm-9"><b>Name / Description</b></p>
+        <p class="col-sm-3"><b>Races</b></p>
+      </div>
+      {% for e in elections if (e.approved and e.data('certified')) %}
+      <div class="list-group-item row">
+        <p class="col-sm-9">
+          <span style='font-size:24px;display: block'>
+            <a href="{{ urlFor('electionResults', {id: e.id})}}">{{e.name}}</a>
+          </span>
+          {{e.description}}
+        </p>
+        <div class="col-sm-3 list-group">
+          {% for race in e.getRaces() %}
+          <a href="{{ urlFor('electionResults', {id: e.id})}}#race:{{loop.index0}}" class="list-group-item">{{race.raceName}}</a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% include 'footer.html' %}

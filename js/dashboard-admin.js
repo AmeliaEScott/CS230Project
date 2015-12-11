@@ -25,6 +25,16 @@ var user = {
       data: {'userID': id}
     };
     return $.ajax(opts);
+  },
+  edit: function(id, userData) {
+    var opts = {
+      url: apiurlify(['users', id].join('/')),
+      method: 'PUT',
+      data: {
+        'data': userData
+      }
+    };
+    return $.ajax(opts);
   }
 }
 
@@ -120,9 +130,20 @@ $(function(){
       }
   });
 
+  setInterval(function() {
+    if (document.getElementsByName('adminView')[0].checked) {
+      window.location.hash = 'admin';
+    }
+  }, 100);
+
   if (document.location.hash == '#admin') {
     $('input[name="adminView"]').bootstrapToggle('on');
   }
+
+  $('i[data-debug]').click(function() {
+    alert('Check your browser console for raw election information.');
+    console.log(JSON.parse($(this).attr('data-debug') || '{}'));
+  });
 
   $('span[data-approve], span[data-remove]').click(function() {
     var btn = $(this),

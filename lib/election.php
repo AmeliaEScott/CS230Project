@@ -14,32 +14,50 @@ class Election {
     if (isset($data)) {
       if (isset($data->ballotName)) {
         $this->name = $data->ballotName;
-        $this->time = $data->ballotRange;
-        $this->description = $data->ballotDesc;
-        $this->ec = (int)$data->ballotEC;
-        $this->data = $data->ballotRaces;
       } else if (isset($data->name)) {
-        $this->id = (int)$data->id;
         $this->name = $data->name;
-        $this->time = $data->time;
-        $this->description = $data->description;
-        $this->ec = (int)$data->ec;
-        $this->data = json_decode($data->data);
       }
+      if (isset($data->id) && is_numeric($data->id)) {
+        $this->id = (int)$data->id;
+      }
+      if (isset($data->ballotRange)) {
+        $this->time = $data->ballotRange;
+      } else if (isset($data->time)) {
+        $this->time = $data->time;
+      }
+      if (isset($data->ballotDesc)) {
+        $this->description = $data->ballotDesc;
+      } else if (isset($data->description)) {
+        $this->description = $data->description;
+      }
+      if (isset($data->ballotEC) && is_numeric($data->ballotEC)) {
+        $this->ec = (int)$data->ballotEC;
+      } else if (isset($data->ec)) {
+        $this->ec = $data->ec;
+      }
+
+      if (isset($data->ballotRaces)) {
+        $this->data = (object)array(
+          'raceData' => is_string($data->ballotRaces) ? json_decode($data->ballotRaces) : $data->ballotRaces
+        );
+      } else if (isset($data->data)) {
+        $this->data = is_string($data->data) ? json_decode($data->data) : $data->data;
+      }
+
       $this->approved = isset($data->approved) ? $data->approved : false;
     }
   }
 
   public function getData($key) {
-    if(isset($this->data[$key])) {
-      return $this->data[$key];
+    if(isset($this->data) && isset($this->data->{$key})) {
+      return $this->data->{$key};
     } else {
       return null;
     }
   }
 
   public function setData($key, $value) {
-    $this->data[$key] = $value;
+    $this->data->{$key} = $value;
   }
 
   public function setStatus($status, $db) {
@@ -56,10 +74,10 @@ class Election {
       if (is_string($this->data)) {
         $q->bindParam(':data', $this->data);
       } else {
-        $q->bindParam(':data', serialize($this->data), PDO::PARAM_LOB);
+        $q->bindParam(':data', json_encode($this->data), PDO::PARAM_LOB);
       }
       $q->bindParam(':id', $this->id);
-      $q->bindParam(':ec', $this->ec);
+      $q->bindParam(':ec', is_object($this->ec) ? $this->ec->id : $this->ec);
       $q->execute();
       return ($q->rowCount() == 1);
     } else {
@@ -81,13 +99,7 @@ class Election {
   }
 
   public function getRaces() {
-    $races = array();
-    foreach($this->data as $item) {
-      if(array_key_exists('raceName', $item)) {
-        $races[] = $item;
-      }
-    }
-    return empty($races) ? null : $races;
+    return $this->getData('raceData');
   }
 
   public function isActive() {

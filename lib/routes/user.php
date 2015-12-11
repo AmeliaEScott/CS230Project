@@ -27,24 +27,18 @@ $checkAuth = function($role = 1) {
 $app->get(
     '/',
     function() use($app, $db) {
-      $elections = array();
-      $q = $db->prepare("SELECT * FROM elections");
-      if($q->execute()) {
-        while($row = $q->fetch(PDO::FETCH_OBJ)) {
-          $elec = new Election($row);
-            $elections[] = $elec;
-        }
-      }
       $app->render('index.html', array(
-        'elections' => $elections
+        'elections' => $db->getElection()
       ));
     }
 )->name('homepage');
 
 $app->get(
   '/campaigns(/)',
-  function() use($app) {
-    $app->render('campaigns.html');
+  function() use($app, $db) {
+    $app->render('campaigns.html', array(
+      'elections' => $db->getElection()
+    ));
   }
 )->name('campaigns');
 
@@ -60,11 +54,39 @@ $app->get(
     } else {
       $app->render('campaign.html', array(
         'election' => $elec,
-        'myvote' => isset($user) ? $db->getVotes($id, $user->id) : null
+        'myvote' => isset($user) ? $db->getVotes($id, $user->id) : null,
+        'votes' => isset($user) ? ($user->isAdmin() ? $db->getVotes($id) : null) : null
       ));
     }
   }
 )->name('election');
+
+$app->get(
+  '/campaign/:id/results',
+  function($id) use ($app, $db) {
+    $user = $app->view->get('user');
+    $elec = $db->getElection($id);
+
+    if (!isset($user)) {
+      $app->flash('error', 'You must be logged in to view election results.');
+      $app->redirect($app->urlFor('homepage'));
+    } else if (empty($elec)) {
+      $app->flash('error', 'Results for an election with that ID do not exist.');
+      $app->redirect($app->urlFor('homepage'));
+    } else {
+      if ((!$elec->approved || ($elec->getData('certified') != true)) && !$user->isAdmin()) {
+        $app->flash('error', 'You do not have permission to access those results.');
+        $app->redirect($app->urlFor('homepage'));
+      } else {
+        $app->render('results.html', array(
+          'election' => $elec,
+          'votes' => $db->getVotes($id),
+          'users' => $user->IsAdmin() ? $db->getUser() : null
+        ));
+      }
+    }
+  }
+)->name('electionResults');
 
 $app->post(
   '/campaign/:id/vote',
@@ -88,7 +110,7 @@ $app->post(
       $elec->getData('bannedUsers') == null ? array() : $elec->getData('bannedUsers')
     );
 
-    if ($user->getData('banned') == true || $banKey != false) {
+    if ($user->getData('banned') == true || $banKey != false || $elec->getData('certified') == true) {
       echo json_encode(array(
         'success' => false,
         'error' => 'You do not have permission to cast a vote in this election.'
@@ -141,6 +163,19 @@ $app->post(
           return;
         }
 
+        $usrTags = $user->getData('tags') == null ? array() : $user->getData('tags');
+        $restrictions = isset($race->restrictions) ? $race->restrictions : array();
+        if (!empty($restrictions)) {
+          $banKey = array_intersect($usrTags, $restrictions);
+
+          if ($banKey != false) {
+            echo json_encode(array(
+              'success' => false,
+              'error' => 'You do not have permission to cast a vote in this election.'
+            ));
+            return;
+          }
+        }
         $vote->save($db);
       }
     }
@@ -155,8 +190,10 @@ $app->post(
 
 $app->get(
   '/results(/)',
-  function() use($app) {
-    $app->render('results.html');
+  function() use($app, $db) {
+    $app->render('resultsListing.html', array(
+      'elections' => $db->getElection()
+    ));
   }
 )->name('results');
 
@@ -179,6 +216,7 @@ $app->get(
       if ($user->isAdmin()) {
         $data['users'] = $db->getUser();
       }
+      $data['votes'] = $db->getVotes(-1);
       $data['myvotes'] = $db->getVotes(-1, $user->id);
       $app->render('dashboard.html', $data);
     }

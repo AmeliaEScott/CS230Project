@@ -13,11 +13,42 @@
       </div>
       <div class="form-group">
         <div class="col-sm-offset-4 col-sm-8">
-          <button class="btn btn-danger" id="elecPurge">Purge</button>
+          <button class="btn btn-danger" id="elecPurge">
+            <i class="glyphicon glyphicon-trash"></i> Purge
+          </button>
         </div>
       </div>
     </div>
+    <div class="col-sm-4 col-sm-offset-1 well form-horizontal">
+      <p class="text-center">
+        Use this to edit a specific user's data. Be careful as this injects data directly into the database.
+      </p>
+      <div class="form-group">
+        <label for="editUserID" class="col-sm-4 control-label">User</label>
+        <select name="editUserID">
+          {% for u in users %}
+          <option value="{{u.id}}" data-data="{{u.data|json_encode()}}" class="userDataOpt">{{u.name}}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <div class="col-sm-offset-4 col-sm-8">
+          <button class="btn btn-primary" id="editUserData">
+            <i class="glyphicon glyphicon-edit"></i> Edit
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-2 col-sm-offset-1 well form-horizontal">
+      <p>
+        These are the faculty members our systems recognizes as verified by the Registrar.
+      </p>
+      <input type="text" value="Cindy Tanner, Bob Barker, Gordon Gee, Aaron Saas">
+      <hr>
+      <a href="" class="btn btn-primary"><i class="glyphicon glyphicon-download"></i>Download Archive</a>
+    </div>
     <script type="text/javascript" defer>
+    window.onload = function() {
       document.getElementById('elecPurge').onclick = function() {
         var id = document.getElementById('elecPurgeID').value;
         if (id.length != 0 || !isNaN(id)) {
@@ -32,6 +63,24 @@
           alert('Please enter a valid election ID.');
         }
       };
+
+      document.getElementById('editUserData').onclick = function() {
+        var id = document.getElementsByName('editUserID')[0].value,
+            userData = JSON.parse($('select[name="editUserID"] option[value="' + id + '"]').attr('data-data') || '{}');
+        $('pre#userDataField').text(JSON.stringify(userData, null, 4));
+        $('pre#userDataField').attr('data-userID', id);
+        $('div#editUserDataModal').modal('toggle');
+      };
+
+      document.getElementById('saveUserData').onclick = function() {
+        var dataField = document.getElementById('userDataField');
+        user.edit(dataField.getAttribute('data-userID'), JSON.parse(dataField.innerText || '{}')).done(function(d) {
+          alert(d.success ? 'This user\'s data has been edited. The page will now refresh to ensure data integrity.' : ('Error: ' + d.message));
+          if (d.success) location.reload();
+        });
+        $('div#editUserDataModal').modal('toggle');
+      };
+    };
     </script>
   </div>
   <div class="clearfix"></div>
@@ -70,6 +119,7 @@
               <th>Name</th>
               <th>Description</th>
               <th>Commissioner</th>
+              <th>Debug</th>
             </tr>
           </thead>
           <tbody>
@@ -93,6 +143,9 @@
                   <i class="glyphicon glyphicon-edit"></i>
                 </span>
               </td>
+              <td>
+                <i class="cursor-pointer glyphicon glyphicon-info-sign" data-debug="{{e|json_encode()}}"></i>
+              </td>
             </tr>
             {% endfor %}
           </tbody>
@@ -107,7 +160,8 @@
       <div class="table-responsive">
         <table class="table">
           <caption>
-            These are all users who have used the system. From here you can do things to said users.
+            These are all users who have used the system. From here you can do things to said users.<br>
+            NOTE: Users with the SuperAdmin or Admin role are not affected by any account flags.
           </caption>
           <thead>
             <tr>
@@ -176,6 +230,29 @@
             <p>
               <b>Note:</b> This will only change this election's current election commisioner to your selection. The current election commissinoer will retain their "election commissioner" role. To remove this, use the tools in the dashboard.
             </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" tabindex="-1" role="dialog" id="editUserDataModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-sm-8 col-sm-offset-2">
+            <p>
+              Please enter the new data for the user, then click Save.
+            </p>
+            <pre id="userDataField" contentEditable="true" data-userID=""></pre>
+          </div>
+          <div class="clearfix"></div>
+          <div class="col-sm-8 col-sm-offset-2">
+            <button class="btn btn-primary" id="saveUserData">
+                <i class="glyphicon glyphicon-save"></i> Save
+            </button>
           </div>
         </div>
       </div>

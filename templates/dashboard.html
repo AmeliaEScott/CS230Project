@@ -6,8 +6,8 @@
     <div class="page-header">
       <h2>Welcome, {{ user.name }}</h2>
       <p>
-        {% if user.role <= 2 %}
-        Below you will find tools needed to administrate election comissioners{{user.role == 1 ? ', ' : ' and'}} active elections{{user.role == 1 ? ', and the system as a whole'}}.
+        {% if user.IsAdmin %}
+        Below you will find tools needed to administrate election comissioners{{user.IsSuperAdmin ? ', ' : ' and'}} active elections{{user.IsSuperAdmin ? ', and the system as a whole'}}.
         <span class="pull-right">
           <label class="checkbox-inline">
             <input type="checkbox" data-toggle="toggle" data-size="small" name="adminView"> Admin View
@@ -17,6 +17,53 @@
       </p>
     </div>
     <div id="studentPanel">
+      {% if user.data('isEC') %}
+      <div>
+        <h4>My Elections</h4>
+        <div class="col-sm-8">
+          <div class="table-responsive">
+            <table class="table">
+              <caption>
+                These are all the elections in which you are set as the election commissioner. For moderation options, please contact the Head of Student Organizations.
+              </caption>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Election</th>
+                  <th>Number of Votes</th>
+                  <th>Description</th>
+                  <th>Data</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for e in elections if e.ec.id == user.id %}
+                  <tr>
+                    <td>{{e.id}}</td>
+                    <td>
+                      <a href="{{ urlFor('election', {id: e.id}) }}">{{e.name}}</a>
+                    </td>
+                    <td>
+                    {% set numVotes = 0 %}
+                    {% for v in votes if v.elecID == e.id %}
+                      {% set numVotes = numVotes + 1 %}
+                    {% endfor %}
+                    {{numVotes}}
+                    </td>
+                    <td>{{e.description}}</td>
+                    <td>
+                      {% if e.data('bannedUsers') is not empty %}
+                      Disqualified users: {{e.data('bannedUsers')|join(', ')}}
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="clearfix"></div>
+      </div>
+      {% endif %}
       <div>
         <h4>My Votes</h4>
         <div class="col-sm-8">
@@ -39,6 +86,7 @@
                   {% for e in elections if e.id == v.elecID %}
                     {% set elec = e %}
                   {% endfor %}
+                  {% set race = elec.getRaces()[v.raceID] %}
                   <tr>
                     <td>
                       <a href="{{ urlFor('election', {id: v.elecID}) }}">
@@ -46,9 +94,8 @@
                       </a>
                     </td>
                     <td>{{v.time|date('M jS, Y \\a\\t g:ia')}}</td>
-                    {% set elecRaces, r = elec.getRaces(), elecRaces[v.raceID] %}
-                    <td>{{r.raceName}}</td>
-                    <td>{{v.candidate == -1 ? v.data.writein : r.candidates[v.candidate].name}}</td>
+                    <td>{{race.raceName}}</td>
+                    <td>{{v.candidate == -1 ? ('Write-In: <em>' + v.data.writein + '</em>') : race.candidates[v.candidate].name}}</td>
                   </tr>
                 {% else %}
                   <tr>

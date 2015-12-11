@@ -2,10 +2,10 @@
 
 {% include 'header.html' %}
 
-  {% if election.approved == false %}
+  {% if election.approved == false and user.IsAdmin %}
   <div class="container">
     <div class="alert alert-warning">
-      <b>Heads up!</b> This campaign is not yet approved. Please visit the <a href="{{ urlFor('dashboard')}}">your dashboard</a> to approve it.
+      <b>Heads up!</b> This campaign is not yet approved. Please visit <a href="{{ urlFor('dashboard')}}">your dashboard</a> to approve it.
     </div>
   </div>
   {% endif %}
@@ -23,6 +23,18 @@
         </div>
       </div>
       <div class="clearfix"></div>
+      {% if election.data.certified %}
+      <div class="col-sm-6 col-sm-offset-3">
+        <div class="panel panel-info">
+          <div class="panel-heading"><i class="glyphicon glyphicon-info-sign"></i> Election Results
+          <a class="pull-right" href="results">view results &rarr;</a></div>
+          <div class="panel-body">
+            Results for this election have been certified. No more responses will be accepted.
+          </div>
+        </div>
+      </div>
+      <div class="clearfix"></div>
+      {% endif %}
       {% if myvote %}
       <div class="col-sm-6 col-sm-offset-3">
         <div class="panel panel-info">
@@ -38,9 +50,29 @@
       {% endif %}
     </div>
     <div class="col-sm-offset-2 col-sm-8">
-      <p class="text-center">
-        <b>Created by</b> {{election.ec.name}}
-      </p>
+      <dl class="dl-horizontal col-sm-8 col-sm-offset-2">
+        <dt>Created by</dt>
+        <dd>{{election.ec.name}}</dd>
+        <dt>Opened</dt>
+        <dd>{{(election.time|split(' - '))[0]}}</dd>
+        <dt>Closes</dt>
+        <dd>{{(election.time|split(' - '))[1]}}</dd>
+      </dl>
+      <div class="clearfix"></div>
+      {% if (user.IsAdmin or (election.ec.id == user.id and user.data('isEC'))) %}
+      <dl class="dl-horizontal col-sm-8 col-sm-offset-2">
+        <dt>Votes (so far)</dt>
+        <dd>{{votes|length}}</dd>
+        {% if election.data('bannedUsers') is not empty %}
+        <dt>Disqualified Users</dt>
+        <dd>{{election.data('bannedUsers')|join(', ')}}</dd>
+        {% endif %}
+      </dl>
+      <span class="col-sm-8 col-sm-offset-2 text-center">
+        <a href="{{urlFor('electionResults', {id: election.id})}}">click to view/certify results</a>
+      </span>
+      <div class="clearfix"></div>
+      {% endif %}
       <hr>
       <p>
         Results will be available after the election closes.<br>
@@ -48,16 +80,18 @@
         Still having issues? Please read our <a href="{{ urlFor('about') }}">FAQ</a>.
       </p>
       <h2>Races</h2>
-      {% set races, parties = [], [] %}
-      {% for race in election.data if race.raceName %}
-        {% set races = races|merge([race]) %}
-      {% endfor %}
+      {% set races, parties = election.getRaces(), [] %}
       {% for race in races %}
         {% set raceID = loop.index0 %}
         <form class="raceForm" id="race:{{raceID}}">
           <div class="text-center">
             <h3>{{race.raceName}}</h3>
             {% if race.raceDesc %}<p>{{race.raceDesc}}</p>{% endif %}
+            {% if race.restrictions is not empty %}
+            <p>
+              Users must satisfy the following to vote: {{election.data('restrictions')|join(', ')}}
+            </p>
+            {% endif %}
           </div>
           <div class="col-sm-6 col-sm-offset-3">
             {% for candidate in race.candidates %}
